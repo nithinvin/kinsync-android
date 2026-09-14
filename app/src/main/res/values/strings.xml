@@ -1,0 +1,36 @@
+<resources>
+    <string name="app_name">KinSync</string>
+
+    <string name="consent_title">Before we start</string>
+    <string name="consent_body">KinSync will notice when you unlock your phone and use it, so
+        it can quietly check that everything looks normal for you. It never reads what you type,
+        never sees which apps you open, and never tracks where you go. Only a simple
+        \"I\'m okay\" style signal is ever sent to your family — not your raw activity.
+        You can turn this off at any time.</string>
+    <string name="consent_agree">I understand, continue</string>
+
+    <string name="usage_access_title">Allow activity check</string>
+    <string name="usage_access_body">Android requires a special permission called \"Usage
+        access\" before an app can help notice your daily patterns. KinSync only uses this to
+        recognize when your phone is being used — it does not read any content.</string>
+    <string name="usage_access_open_settings">Open settings</string>
+    <string name="usage_access_continue">I\'ve granted access, continue</string>
+
+    <string name="battery_title">Keep monitoring reliable</string>
+    <string name="battery_body">To make sure KinSync can\'t be silently stopped by battery
+        optimization, please allow it to run in the background. This does not mean the app runs
+        wastefully — it only wakes briefly when your screen turns on or off.</string>
+    <string name="battery_open_settings">Allow background activity</string>
+    <string name="battery_continue">Continue</string>
+
+    <string name="debug_title">What KinSync has seen</string>
+    <string name="debug_empty">No events yet. Unlock your phone to see one appear here.</string>
+    <string name="debug_backend_checking">Checking backend…</string>
+    <string name="debug_backend_ok">Backend reachable: %1$s</string>
+    <string name="debug_backend_error">Backend unreachable: %1$s</string>
+    <string name="debug_revoke_consent">Stop monitoring</string>
+
+    <string name="monitoring_notification_title">KinSync is watching over you</string>
+    <string name="monitoring_notification_body">Passively noting unlock activity on this device.</string>
+    <string name="monitoring_notification_channel_name">KinSync Monitoring</string>
+</resources>
