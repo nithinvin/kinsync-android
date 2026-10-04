@@ -1,13 +1,11 @@
 <!--
 SYNC IMPACT REPORT
 ==================
-Version change  : 2.0.0 → 2.1.0
-Added sections   : Project-wide Principles (links kinsync-docs common principles)
-Modified         : Security / NFR references now point to kinsync-docs specs/requirements.md
-Rationale        : Cross-cutting rules (privacy, security baseline, API-contract-first, docs and
-                   git workflow) now live once in kinsync-docs and apply to both code repos.
-                   (2.0.0 retargeted the copied kinsync-api constitution to Kotlin/Android.)
-TODOs            : none
+Version change  : 2.1.0 → 2.1.1
+Modified         : Quality Gates — ktlint and detekt marked as deferred (not yet configured in
+                   Gradle; to be set up when needed)
+Previous (2.1.0) : Added Project-wide Principles; NFR references point to kinsync-docs
+TODOs            : configure ktlint + detekt Gradle plugins, then remove the "deferred" notes
 -->
 
 # kinsync-android Constitution
@@ -49,8 +47,10 @@ conventional Compose scope receivers (`it`).
 
 Every implementation MUST satisfy all of the following before a task is considered complete:
 
-- Zero `ktlintCheck` violations.
-- Zero `detekt` findings (configuration in `config/detekt/detekt.yml`).
+- Zero `ktlintCheck` violations. *(Deferred — ktlint plugin not yet configured; until then use
+  Android Studio's formatter with the official Kotlin style.)*
+- Zero `detekt` findings (configuration in `config/detekt/detekt.yml`). *(Deferred — detekt not
+  yet configured; will be set up when needed.)*
 - Zero warnings from `./gradlew lint` (Android Lint) at the `error`-severity threshold.
 - All unit tests passing (`./gradlew test`).
 - Build succeeds via `./gradlew assembleDebug`.
@@ -155,7 +155,7 @@ The following are prohibited and MUST be corrected before completion:
 - Treat ALL external inputs (Intents from other apps, deep links, network responses,
   broadcast extras) as untrusted; validate before use.
 - Never expose secrets, keys, or credentials in source code, logs, or error messages; no
-  credentials are expected in this client app, but tokens issued by the backend (from Phase-2
+  credentials are expected in this client app, but tokens issued by the backend (from Phase-3
   onward) MUST be stored using `EncryptedSharedPreferences` or the Android Keystore, never plain
   `SharedPreferences`.
 - Use HTTPS exclusively for any network communication; cleartext traffic MUST remain disabled
@@ -195,4 +195,4 @@ Amendment procedure:
 All pull requests MUST verify compliance with every principle herein before merging.
 Complexity or deviation from these principles MUST be explicitly justified in the PR description.
 
-**Version**: 2.1.0 | **Ratified**: 2026-09-12 | **Last Amended**: 2026-10-04
+**Version**: 2.1.1 | **Ratified**: 2026-09-12 | **Last Amended**: 2026-10-04

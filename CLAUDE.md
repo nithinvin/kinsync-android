@@ -44,8 +44,9 @@ adb logcat --pid=$(adb shell pidof -s com.kinsync.android)
 Needs JDK 17+ and Android SDK 35 (`local.properties` with `sdk.dir`, gitignored) — see
 [docs/setup.md](docs/setup.md).
 
-Constitution §II also names `ktlintCheck` and `detekt` (`config/detekt/detekt.yml`) as gates, but
-neither plugin is configured in Gradle yet — flag this rather than silently skipping it.
+Constitution §II names `ktlintCheck` and `detekt` as gates, but both are **deferred by team
+decision** (2026-10-04) — not configured in Gradle yet. Don't add them unless asked; current gates
+are `./gradlew lint`, `./gradlew test`, `./gradlew assembleDebug`.
 
 ## Layout (`app/src/main/java/com/kinsync/android/`)
 
