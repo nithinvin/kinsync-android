@@ -2,7 +2,7 @@
 
 This covers what to install on a **development machine** to build and run kinsync-android, and
 what's needed on the **physical Android phone** used for testing. Phase-1 is meant to be proven
-on a real device (per `plan.md`) — an emulator can be used for UI iteration, but the unlock-event
+on a real device (per [phase-1](https://github.com/nithinvin/kinsync-docs/blob/main/plan/phase-1.md)) — an emulator can be used for UI iteration, but the unlock-event
 collection and permission flows should ultimately be verified on real hardware.
 
 ## 1. Development machine
@@ -97,5 +97,5 @@ Or manually:
 adb install -r app/build/outputs/apk/debug/app-debug.apk
 ```
 
-See [deployment.md](deployment.md) for release-build signing and the on-device onboarding
+See [build-and-install.md](build-and-install.md) for release-build signing and the on-device onboarding
 checklist.

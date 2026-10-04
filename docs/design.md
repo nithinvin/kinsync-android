@@ -1,13 +1,16 @@
 # KinSync Android — Design Notes (Phase-1)
 
-**Companion documents:** the authoring specs live in the sibling `kinsync-api` repo at
-`../kinsync-api/specs/spec.md` (requirements) and `../kinsync-api/specs/plan.md` (full
-architecture, all phases). This document only covers what's specific to the Android client and
-what was actually built in Phase-1.
+**Companion documents:** project-wide requirements, architecture, API contract and roadmap live
+in [kinsync-docs](https://github.com/nithinvin/kinsync-docs) —
+[requirements](https://github.com/nithinvin/kinsync-docs/blob/main/specs/requirements.md),
+[architecture](https://github.com/nithinvin/kinsync-docs/blob/main/design/architecture.md),
+[API contract](https://github.com/nithinvin/kinsync-docs/blob/main/design/api-contract.md),
+[roadmap](https://github.com/nithinvin/kinsync-docs/blob/main/plan/roadmap.md). This document only covers what's specific to the Android client
+and what was actually built in Phase-1.
 
 ## Scope of this document
 
-Phase-1's job (per `plan.md`) is to retire two technical risks early:
+Phase-1's job (per [phase-1](https://github.com/nithinvin/kinsync-docs/blob/main/plan/phase-1.md)) is to retire two technical risks early:
 
 1. Do the Android background-collection APIs (unlock/screen broadcasts, special permissions,
    battery-optimization allowlisting) behave as expected on a real device?
@@ -62,7 +65,7 @@ com.kinsync.android
 
 ## What's explicitly out of scope for Phase-1
 
-Per `plan.md`: baseline computation, deviation detection, escalation logic, pairing, FCM push,
+Per [phase-1](https://github.com/nithinvin/kinsync-docs/blob/main/plan/phase-1.md): baseline computation, deviation detection, escalation logic, pairing, FCM push,
 caregiver app/UI, SMS fallback, and Activity Recognition motion capture. `UsageStatsManager`
 querying itself is also deferred to Phase-2 — Phase-1 only requests the permission and shows the
 rationale screen, per the plan's explicit Phase-1 deliverable list.

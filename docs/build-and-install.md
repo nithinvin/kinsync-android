@@ -1,6 +1,7 @@
 # Building & Deploying to a Device (Phase-1)
 
-This is the Android counterpart to `kinsync-api`'s `specs/deployment.md`. There is no server-side
+Backend operations are in the [kinsync-docs runbooks](https://github.com/nithinvin/kinsync-docs/tree/main/runbooks); preparing a phone
+for a review demo is [android-demo-device](https://github.com/nithinvin/kinsync-docs/blob/main/runbooks/android-demo-device.md). There is no server-side
 deployment for this repo — "deployment" here means getting a build onto the elder's (or a test)
 phone.
 

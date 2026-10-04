@@ -1,17 +1,24 @@
 <!--
 SYNC IMPACT REPORT
 ==================
-Version change  : 1.0.0 → 2.0.0
-Modified sections: Core Principles (I–VII) — retargeted from Python to Kotlin/Android,
-                   Code Quality, Security, Non-functional Requirements, Governance
-Rationale        : kinsync-android is a native Android/Kotlin client, not a Python service.
-                   The original ratification copied the kinsync-api (Python/FastAPI) template
-                   verbatim; this amendment replaces all language- and tooling-specific
-                   content with Kotlin/Android/Gradle equivalents while preserving intent.
-TODOs            : none — all placeholders resolved
+Version change  : 2.0.0 → 2.1.0
+Added sections   : Project-wide Principles (links kinsync-docs common principles)
+Modified         : Security / NFR references now point to kinsync-docs specs/requirements.md
+Rationale        : Cross-cutting rules (privacy, security baseline, API-contract-first, docs and
+                   git workflow) now live once in kinsync-docs and apply to both code repos.
+                   (2.0.0 retargeted the copied kinsync-api constitution to Kotlin/Android.)
+TODOs            : none
 -->
 
 # kinsync-android Constitution
+
+## Project-wide Principles
+
+This constitution builds on the
+[KinSync Common Engineering Principles](https://github.com/nithinvin/kinsync-docs/blob/main/engineering/common-principles.md)
+(privacy by construction, security baseline, testing baseline, API contract first, documentation
+discipline, git workflow). On those cross-cutting topics the common principles take precedence;
+this file adds the Kotlin/Android-specific rules.
 
 ## Core Principles
 
@@ -154,7 +161,7 @@ The following are prohibited and MUST be corrected before completion:
 - Use HTTPS exclusively for any network communication; cleartext traffic MUST remain disabled
   (default Android network security policy) with no exceptions added.
 - Raw on-device activity data (unlock events, app usage, motion) MUST NEVER be transmitted
-  off-device — only derived/minimal signals leave the device, per `spec.md` NFR-1.
+  off-device — only derived/minimal signals leave the device, per [NFR-1](https://github.com/nithinvin/kinsync-docs/blob/main/specs/requirements.md#2-non-functional-requirements).
 - Follow OWASP Mobile Top 10 / OWASP Top 10 guidance; review every new code path for insecure
   data storage, insecure communication, and improper platform-permission usage.
 - Dependency updates MUST be evaluated for known CVEs before adoption.
@@ -165,11 +172,11 @@ Every implementation MUST consider the following dimensions:
 
 - **Reliability**: Failures MUST be handled gracefully with clear error reporting; background
   collection MUST survive app-process death and device reboot where the design calls for it
-  (see `spec.md` NFR-2).
+  (see [NFR-2](https://github.com/nithinvin/kinsync-docs/blob/main/specs/requirements.md#2-non-functional-requirements)).
 - **Performance**: UI must remain responsive (no blocking I/O on the main thread); DB and
   network operations MUST run on background dispatchers/WorkManager.
 - **Battery**: Background collection MUST be evaluated for battery impact against the
-  <5% additional daily drain target (`spec.md` NFR-3) before being considered complete.
+  <5% additional daily drain target ([NFR-3](https://github.com/nithinvin/kinsync-docs/blob/main/specs/requirements.md#2-non-functional-requirements)) before being considered complete.
 - **Scalability**: Design choices MUST not prevent future support for additional collectors,
   baseline computation, or multi-elder pairing scenarios.
 
@@ -188,4 +195,4 @@ Amendment procedure:
 All pull requests MUST verify compliance with every principle herein before merging.
 Complexity or deviation from these principles MUST be explicitly justified in the PR description.
 
-**Version**: 2.0.0 | **Ratified**: 2026-09-12 | **Last Amended**: 2026-09-14
+**Version**: 2.1.0 | **Ratified**: 2026-09-12 | **Last Amended**: 2026-10-04
