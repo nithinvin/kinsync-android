@@ -7,12 +7,14 @@ import androidx.room.RoomDatabase
 import androidx.room.TypeConverters
 import com.kinsync.android.collector.UnlockEvent
 import com.kinsync.android.collector.UnlockEventDao
+import com.kinsync.android.movement.MovementEvent
+import com.kinsync.android.movement.MovementEventDao
 import com.kinsync.android.usage.AppUsageInterval
 import com.kinsync.android.usage.AppUsageIntervalDao
 
 @Database(
-    entities = [UnlockEvent::class, AppUsageInterval::class],
-    version = 2,
+    entities = [UnlockEvent::class, AppUsageInterval::class, MovementEvent::class],
+    version = 3,
     exportSchema = true,
 )
 @TypeConverters(Converters::class)
@@ -20,6 +22,8 @@ abstract class AppDatabase : RoomDatabase() {
     abstract fun unlockEventDao(): UnlockEventDao
 
     abstract fun appUsageIntervalDao(): AppUsageIntervalDao
+
+    abstract fun movementEventDao(): MovementEventDao
 
     companion object {
         private const val DATABASE_NAME = "kinsync.db"

@@ -21,6 +21,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import com.kinsync.android.R
 import com.kinsync.android.collector.UnlockEvent
+import com.kinsync.android.movement.LastMovedStatus
 import com.kinsync.android.network.HealthCheckResult
 import java.text.SimpleDateFormat
 import java.util.Date
@@ -34,12 +35,14 @@ fun DebugEventListScreen(
 ) {
     val events by viewModel.events.collectAsState()
     val appUsage by viewModel.appUsageToday.collectAsState()
+    val lastMoved by viewModel.lastMoved.collectAsState()
     val health by viewModel.healthStatus.collectAsState()
 
     DebugEventListContent(
         health = health,
         isUsageAccessGranted = viewModel.isUsageAccessGranted,
         appUsage = appUsage,
+        lastMoved = lastMoved,
         events = events,
         onRevokeConsent = onRevokeConsent,
     )
@@ -51,6 +54,7 @@ fun DebugEventListContent(
     health: HealthCheckResult?,
     isUsageAccessGranted: Boolean,
     appUsage: List<AppUsageRow>,
+    lastMoved: LastMovedStatus,
     events: List<UnlockEvent>,
     onRevokeConsent: () -> Unit,
 ) {
@@ -63,6 +67,8 @@ fun DebugEventListContent(
         Spacer(Modifier.height(8.dp))
         // One scrolling list for every section, so the button below always stays visible.
         LazyColumn(modifier = Modifier.weight(1f)) {
+            item(key = "last_moved_title") { SectionTitle(stringResource(R.string.debug_last_moved_title)) }
+            item(key = "last_moved") { SectionMessage(lastMovedText(lastMoved)) }
             item(key = "app_usage_title") { SectionTitle(stringResource(R.string.debug_app_usage_title)) }
             when {
                 !isUsageAccessGranted -> item(key = "app_usage_no_access") {
@@ -128,8 +134,20 @@ private fun usageDurationText(duration: UsageDuration): String = when (duration)
 }
 
 @Composable
+private fun lastMovedText(status: LastMovedStatus): String = when (status) {
+    LastMovedStatus.NotAvailable -> stringResource(R.string.debug_last_moved_not_available)
+    LastMovedStatus.NotYet -> stringResource(R.string.debug_last_moved_not_yet)
+    is LastMovedStatus.MovedAt -> {
+        val formatter = remember { SimpleDateFormat(DATE_TIME_PATTERN, Locale.getDefault()) }
+        stringResource(R.string.debug_last_moved_at, formatter.format(Date(status.timestampEpochMillis)))
+    }
+}
+
+private const val DATE_TIME_PATTERN = "yyyy-MM-dd HH:mm:ss"
+
+@Composable
 private fun UnlockEventRow(event: UnlockEvent) {
-    val formatter = remember { SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault()) }
+    val formatter = remember { SimpleDateFormat(DATE_TIME_PATTERN, Locale.getDefault()) }
     ListItem(
         headlineContent = { Text(event.eventType.name) },
         supportingContent = { Text(formatter.format(Date(event.timestampEpochMillis))) },

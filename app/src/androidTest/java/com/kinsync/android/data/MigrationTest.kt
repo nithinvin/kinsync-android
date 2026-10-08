@@ -61,6 +61,36 @@ class MigrationTest {
         }
     }
 
+    @Test
+    fun migrate2To3_addsMovementTableAndKeepsAppUsage() {
+        helper.createDatabase(TEST_DB, 2).apply {
+            insert(
+                "app_usage_intervals",
+                SQLiteDatabase.CONFLICT_FAIL,
+                ContentValues().apply {
+                    put("packageName", "com.example.maps")
+                    put("startEpochMillis", 1L)
+                    put("endEpochMillis", 2L)
+                },
+            )
+            close()
+        }
+
+        val migrated = helper.runMigrationsAndValidate(TEST_DB, 3, true, Migrations.MIGRATION_2_3)
+        migrated.query("SELECT COUNT(*) FROM app_usage_intervals").use { cursor ->
+            cursor.moveToFirst()
+            assertEquals(1, cursor.getInt(0))
+        }
+        migrated.close()
+    }
+
+    @Test
+    fun migrate1To3_phaseOnePhoneReachesTheLatestSchema() {
+        helper.createDatabase(TEST_DB, 1).close()
+
+        helper.runMigrationsAndValidate(TEST_DB, 3, true, *Migrations.ALL).close()
+    }
+
     private companion object {
         const val TEST_DB = "migration-test.db"
     }

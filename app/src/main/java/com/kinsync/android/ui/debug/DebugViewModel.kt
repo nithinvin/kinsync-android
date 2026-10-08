@@ -9,6 +9,9 @@ import com.kinsync.android.collector.UnlockEvent
 import com.kinsync.android.collector.UnlockEventDao
 import com.kinsync.android.network.HealthApiClient
 import com.kinsync.android.network.HealthCheckResult
+import com.kinsync.android.movement.LastMovedStatus
+import com.kinsync.android.movement.MovementEventDao
+import com.kinsync.android.movement.SignificantMotionDetector
 import com.kinsync.android.permissions.UsageAccessPermission
 import com.kinsync.android.usage.AppUsageIntervalDao
 import com.kinsync.android.usage.AppUsageTotals
@@ -34,10 +37,12 @@ data class AppUsageRow(
 class DebugViewModel(
     dao: UnlockEventDao,
     appUsageDao: AppUsageIntervalDao,
+    movementDao: MovementEventDao,
     private val healthApiClient: HealthApiClient,
     appLabelResolver: AppLabelResolver,
     /** Whether usage access is granted; read once when the screen opens. */
     val isUsageAccessGranted: Boolean,
+    isMotionSensorAvailable: Boolean,
     zoneId: ZoneId = ZoneId.systemDefault(),
 ) : ViewModel() {
 
@@ -58,6 +63,14 @@ class DebugViewModel(
         }
         .flowOn(Dispatchers.Default)
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(STOP_TIMEOUT_MILLIS), emptyList())
+
+    val lastMoved: StateFlow<LastMovedStatus> = movementDao.observeLatest()
+        .map { latest -> LastMovedStatus.of(isMotionSensorAvailable, latest) }
+        .stateIn(
+            viewModelScope,
+            SharingStarted.WhileSubscribed(STOP_TIMEOUT_MILLIS),
+            LastMovedStatus.of(isMotionSensorAvailable, latest = null),
+        )
 
     private val _healthStatus = MutableStateFlow<HealthCheckResult?>(null)
     val healthStatus: StateFlow<HealthCheckResult?> = _healthStatus.asStateFlow()
@@ -84,9 +97,11 @@ class DebugViewModel(
             return DebugViewModel(
                 dao = container.database.unlockEventDao(),
                 appUsageDao = container.database.appUsageIntervalDao(),
+                movementDao = container.database.movementEventDao(),
                 healthApiClient = container.healthApiClient,
                 appLabelResolver = PackageManagerAppLabelResolver(appContext),
                 isUsageAccessGranted = UsageAccessPermission.isGranted(appContext),
+                isMotionSensorAvailable = SignificantMotionDetector.isAvailable(appContext),
             ) as T
         }
     }

@@ -48,6 +48,12 @@
         back here.</string>
     <string name="debug_app_usage_no_access">Usage access is off, so app usage is not being
         recorded. Turn on "Usage access" for KinSync in Settings.</string>
+    <string name="debug_last_moved_title">Last moved</string>
+    <string name="debug_last_moved_at">Your phone last moved at %1$s</string>
+    <string name="debug_last_moved_not_yet">No movement noticed yet. Walk around with your phone
+        and it will show here.</string>
+    <string name="debug_last_moved_not_available">This phone has no motion sensor KinSync can
+        use, so "last moved" is not available.</string>
     <string name="debug_unlock_events_title">Unlock and screen events</string>
     <string name="duration_hours_minutes">%1$d h %2$02d min</string>
     <string name="duration_minutes">%1$d min</string>

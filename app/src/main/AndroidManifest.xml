@@ -55,7 +55,7 @@
             android:foregroundServiceType="specialUse">
             <property
                 android:name="android.app.PROPERTY_SPECIAL_USE_FGS_SUBTYPE"
-                android:value="Passive on-device unlock-event logging for elder safety monitoring (KinSync)" />
+                android:value="Passive on-device logging of unlock, app-usage and movement times for elder safety monitoring (KinSync)" />
         </service>
 
         <receiver

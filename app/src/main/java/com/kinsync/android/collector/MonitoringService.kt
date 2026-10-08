@@ -9,8 +9,12 @@ import android.content.Intent
 import android.os.IBinder
 import androidx.core.app.NotificationCompat
 import androidx.core.content.ContextCompat
+import com.kinsync.android.AppContainer
 import com.kinsync.android.KinSyncApplication
 import com.kinsync.android.R
+import com.kinsync.android.movement.MovementEvent
+import com.kinsync.android.movement.MovementEventDao
+import com.kinsync.android.movement.SignificantMotionDetector
 import com.kinsync.android.usage.AppUsageCollectionWorker
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -19,7 +23,7 @@ import kotlinx.coroutines.cancel
 import kotlinx.coroutines.launch
 
 /**
- * Foreground service that keeps [UnlockEventReceiver] alive across app-process states so the
+ * Foreground service that keeps [UnlockEventReceiver] and the [SignificantMotionDetector] alive across app-process states so the
  * dead-man's-switch data (Phase-2+) is never missing a day (NFR-2). Runs as `specialUse` since no
  * standard foreground-service type covers passive wellbeing monitoring.
  *
@@ -30,19 +34,27 @@ import kotlinx.coroutines.launch
 class MonitoringService : Service() {
 
     private val serviceScope = CoroutineScope(SupervisorJob() + Dispatchers.Default)
+    private lateinit var container: AppContainer
     private lateinit var dao: UnlockEventDao
+    private lateinit var movementDao: MovementEventDao
     private lateinit var receiver: UnlockEventReceiver
+    private lateinit var motionDetector: SignificantMotionDetector
     private var isReceiverRegistered = false
+    private var isMotionDetectorStarted = false
 
     override fun onCreate() {
         super.onCreate()
-        dao = (application as KinSyncApplication).container.database.unlockEventDao()
+        container = (application as KinSyncApplication).container
+        dao = container.database.unlockEventDao()
+        movementDao = container.database.movementEventDao()
         receiver = UnlockEventReceiver(::recordEvent)
+        motionDetector = SignificantMotionDetector(this)
     }
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
         startForeground(NOTIFICATION_ID, buildNotification())
         registerReceiverIfNeeded()
+        startMotionDetectorIfNeeded()
         AppUsageCollectionWorker.schedule(this)
         return START_STICKY
     }
@@ -54,6 +66,8 @@ class MonitoringService : Service() {
             unregisterReceiver(receiver)
             isReceiverRegistered = false
         }
+        motionDetector.stop()
+        isMotionDetectorStarted = false
         serviceScope.cancel()
         super.onDestroy()
     }
@@ -67,6 +81,23 @@ class MonitoringService : Service() {
             ContextCompat.RECEIVER_NOT_EXPORTED,
         )
         isReceiverRegistered = true
+    }
+
+    private fun startMotionDetectorIfNeeded() {
+        if (isMotionDetectorStarted) return
+        motionDetector.start(::recordMovement)
+        isMotionDetectorStarted = true
+    }
+
+    /**
+     * Movement is a Phase-2 signal, so it is recorded only under the current consent text. The
+     * service can be restarted by Android (`START_STICKY`) without going through a consent check.
+     */
+    private fun recordMovement(timestampEpochMillis: Long) {
+        if (!container.consentManager.currentState().canCollect) return
+        serviceScope.launch {
+            movementDao.insert(MovementEvent(timestampEpochMillis = timestampEpochMillis))
+        }
     }
 
     private fun recordEvent(eventType: UnlockEventType, timestampEpochMillis: Long) {

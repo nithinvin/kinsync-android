@@ -6,6 +6,7 @@ import androidx.compose.ui.test.junit4.createAndroidComposeRule
 import androidx.compose.ui.test.onNodeWithText
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.kinsync.android.R
+import com.kinsync.android.movement.LastMovedStatus
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -18,12 +19,17 @@ class DebugEventListContentTest {
 
     private fun text(id: Int) = composeRule.activity.getString(id)
 
-    private fun show(isUsageAccessGranted: Boolean, appUsage: List<AppUsageRow>) {
+    private fun show(
+        isUsageAccessGranted: Boolean = true,
+        appUsage: List<AppUsageRow> = emptyList(),
+        lastMoved: LastMovedStatus = LastMovedStatus.NotYet,
+    ) {
         composeRule.setContent {
             DebugEventListContent(
                 health = null,
                 isUsageAccessGranted = isUsageAccessGranted,
                 appUsage = appUsage,
+                lastMoved = lastMoved,
                 events = emptyList(),
                 onRevokeConsent = {},
             )
@@ -57,5 +63,19 @@ class DebugEventListContentTest {
 
         composeRule.onNodeWithText(text(R.string.debug_app_usage_no_access)).assertIsDisplayed()
         composeRule.onNodeWithText("Maps").assertDoesNotExist()
+    }
+
+    @Test
+    fun noMotionSensor_saysLastMovedIsNotAvailable() {
+        show(lastMoved = LastMovedStatus.NotAvailable)
+
+        composeRule.onNodeWithText(text(R.string.debug_last_moved_not_available)).assertIsDisplayed()
+    }
+
+    @Test
+    fun noMovementYet_saysSo() {
+        show(lastMoved = LastMovedStatus.NotYet)
+
+        composeRule.onNodeWithText(text(R.string.debug_last_moved_not_yet)).assertIsDisplayed()
     }
 }

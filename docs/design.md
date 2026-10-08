@@ -31,6 +31,7 @@ com.kinsync.android
 │                              foreground Service, boot and app-update receivers (FR-2.1, FR-2.4)
 ├── usage/                     App-usage intervals: UsageStatsManager reader, interval builder,
 │                              collector, WorkManager job, Room entity + DAO (FR-2.2)
+├── movement/                  "Last moved": significant-motion trigger, Room entity + DAO (FR-2.7)
 ├── data/                      Room database, migrations + type converters (schemas in app/schemas/)
 ├── permissions/                Usage-access + battery-optimization permission helpers (FR-2.2)
 ├── network/                   HealthApiClient — the Phase-1 stretch-goal `/health` check only
@@ -53,8 +54,15 @@ com.kinsync.android
   only when `ConsentState.canCollect` is true (onboarding finished and the current consent text
   agreed) — collection never starts without consent (FR-2.4, FR-7.1).
 - **Room stores only local, on-device signals.** `UnlockEvent(eventType, timestampEpochMillis)`
-  and `AppUsageInterval(packageName, startEpochMillis, endEpochMillis)`. No content, no
-  location. App names stay on the phone (NFR-1).
+  `AppUsageInterval(packageName, startEpochMillis, endEpochMillis)` and
+  `MovementEvent(timestampEpochMillis)`. No content, no location. App names stay on the phone
+  (NFR-1).
+- **"Last moved" uses the significant-motion sensor only.** `SignificantMotionDetector` arms
+  Android's one-shot `TYPE_SIGNIFICANT_MOTION` trigger inside `MonitoringService` and re-arms it
+  after each trigger; only the time is stored. There is no accelerometer sampling and no step
+  counting (Phase-2 decision 1). Phones without the sensor show "last moved is not available".
+  Movement is recorded only while `ConsentState.canCollect` is true, because Android can
+  restart the service (`START_STICKY`) without a consent check.
 - **App usage is collected in the background with WorkManager**, once when monitoring starts
   (including every app open) and then every 15 minutes. `MonitoringService.start` schedules the
   job and `MonitoringService.stop` cancels it; the job itself also checks consent and usage
