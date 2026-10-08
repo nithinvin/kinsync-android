@@ -82,7 +82,9 @@ fun KinSyncApp(container: AppContainer) {
             )
         }
         composable(KinSyncDestinations.DEBUG) {
-            val debugViewModel: DebugViewModel = viewModel(factory = DebugViewModel.Factory(container))
+            val debugViewModel: DebugViewModel = viewModel(
+                factory = DebugViewModel.Factory(container, context.applicationContext),
+            )
             DebugEventListScreen(
                 viewModel = debugViewModel,
                 onRevokeConsent = {

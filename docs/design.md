@@ -28,8 +28,10 @@ com.kinsync.android
 ├── MainActivity.kt            Single Activity hosting all Compose content
 ├── consent/                   Local consent + onboarding-completion state (FR-7.1, FR-7.3)
 ├── collector/                 Unlock/screen event capture: Room entity, DAO, BroadcastReceiver,
-│                              foreground Service, boot receiver (FR-2.1, FR-2.4)
-├── data/                      Room database + type converters
+│                              foreground Service, boot and app-update receivers (FR-2.1, FR-2.4)
+├── usage/                     App-usage intervals: UsageStatsManager reader, interval builder,
+│                              collector, WorkManager job, Room entity + DAO (FR-2.2)
+├── data/                      Room database, migrations + type converters (schemas in app/schemas/)
 ├── permissions/                Usage-access + battery-optimization permission helpers (FR-2.2)
 ├── network/                   HealthApiClient — the Phase-1 stretch-goal `/health` check only
 └── ui/                        Compose screens (onboarding flow + debug event list), theme, nav
@@ -46,11 +48,24 @@ com.kinsync.android
   `UnlockEventReceiver` dynamically and keeps the process alive (foreground service, `specialUse`
   type) so collection survives normal OEM background-process culling — a prerequisite for the
   dead-man's-switch design in later phases (NFR-2).
-- **`BootCompletedReceiver`** restarts the service after a reboot, but only if the elder has
-  already completed onboarding — collection never starts without consent (FR-2.4, FR-7.1).
-- **Room stores only local, on-device signals.** `UnlockEvent(eventType, timestampEpochMillis)` —
-  nothing else. No raw content, no app names yet (that's Phase-2's `UsageStatsManager` work), no
-  location. This is the schema-level enforcement of NFR-1.
+- **`BootCompletedReceiver`** restarts the service after a reboot, and
+  **`PackageReplacedReceiver`** (`MY_PACKAGE_REPLACED`) restarts it after an app update, but
+  only when `ConsentState.canCollect` is true (onboarding finished and the current consent text
+  agreed) — collection never starts without consent (FR-2.4, FR-7.1).
+- **Room stores only local, on-device signals.** `UnlockEvent(eventType, timestampEpochMillis)`
+  and `AppUsageInterval(packageName, startEpochMillis, endEpochMillis)`. No content, no
+  location. App names stay on the phone (NFR-1).
+- **App usage is collected in the background with WorkManager**, once when monitoring starts
+  (including every app open) and then every 15 minutes. `MonitoringService.start` schedules the
+  job and `MonitoringService.stop` cancels it; the job itself also checks consent and usage
+  access before reading anything. Each run reads `UsageStatsManager.queryEvents()` from a stored
+  cursor to now and turns resume/pause events into foreground intervals
+  (`AppUsageIntervalBuilder`, plain Kotlin, JVM-tested). An app still in the foreground holds
+  the cursor at its start so the next run finishes that interval; rows are unique on
+  (package, start), so re-reading never duplicates. Reads never go back more than 24 hours.
+- **Every schema change has a real Room migration** (`data/Migrations.kt`), never a
+  destructive fallback, so a phone updated in place keeps its history. Exported schemas in
+  `app/schemas/` are packaged into the instrumented tests, and `MigrationTest` checks each step.
 - **`HealthApiClient`** is the only network code in Phase-1, and it only ever calls
   `GET /health` — no elder activity data is sent. The backend base URL is validated as `https://`
   at startup (`BackendConfig.requireHttps`, in `DefaultAppContainer`) rather than inside the
@@ -67,7 +82,7 @@ com.kinsync.android
   An install that agreed to an older text (Phase-1 installs count as version 1) is shown the
   consent screen again with a "KinSync has changed" title. Agreeing returns straight to the main
   screen; declining stops `MonitoringService` and clears consent. Collectors added from Phase-2
-  onwards must check `ConsentState.isConsentCurrent` before recording anything.
+  onwards must check `ConsentState.canCollect` before recording anything.
 
 ## What's explicitly out of scope for Phase-1
 

@@ -6,6 +6,9 @@ import com.kinsync.android.consent.SharedPreferencesConsentManager
 import com.kinsync.android.data.AppDatabase
 import com.kinsync.android.network.BackendConfig
 import com.kinsync.android.network.HealthApiClient
+import com.kinsync.android.usage.AppUsageCollector
+import com.kinsync.android.usage.SharedPreferencesAppUsageCursorStore
+import com.kinsync.android.usage.UsageStatsManagerEventSource
 
 /**
  * Minimal manual dependency container for Phase-1 (no DI framework yet, per CONSTITUTION.md §VII).
@@ -14,6 +17,7 @@ interface AppContainer {
     val database: AppDatabase
     val consentManager: ConsentManager
     val healthApiClient: HealthApiClient
+    val appUsageCollector: AppUsageCollector
 }
 
 class DefaultAppContainer(private val appContext: Context) : AppContainer {
@@ -27,5 +31,13 @@ class DefaultAppContainer(private val appContext: Context) : AppContainer {
 
     override val healthApiClient: HealthApiClient by lazy {
         HealthApiClient(BackendConfig.requireHttps(BuildConfig.KINSYNC_BASE_URL))
+    }
+
+    override val appUsageCollector: AppUsageCollector by lazy {
+        AppUsageCollector(
+            eventSource = UsageStatsManagerEventSource(appContext),
+            dao = database.appUsageIntervalDao(),
+            cursorStore = SharedPreferencesAppUsageCursorStore(appContext),
+        )
     }
 }

@@ -33,8 +33,27 @@ fun DebugEventListScreen(
     onRevokeConsent: () -> Unit,
 ) {
     val events by viewModel.events.collectAsState()
+    val appUsage by viewModel.appUsageToday.collectAsState()
     val health by viewModel.healthStatus.collectAsState()
 
+    DebugEventListContent(
+        health = health,
+        isUsageAccessGranted = viewModel.isUsageAccessGranted,
+        appUsage = appUsage,
+        events = events,
+        onRevokeConsent = onRevokeConsent,
+    )
+}
+
+/** Stateless screen content, so it can be shown in tests without a database. */
+@Composable
+fun DebugEventListContent(
+    health: HealthCheckResult?,
+    isUsageAccessGranted: Boolean,
+    appUsage: List<AppUsageRow>,
+    events: List<UnlockEvent>,
+    onRevokeConsent: () -> Unit,
+) {
     Column(modifier = Modifier
         .fillMaxSize()
         .padding(16.dp)) {
@@ -42,11 +61,23 @@ fun DebugEventListScreen(
         Spacer(Modifier.height(8.dp))
         HealthStatusBanner(health)
         Spacer(Modifier.height(8.dp))
-        if (events.isEmpty()) {
-            Text(stringResource(R.string.debug_empty), style = MaterialTheme.typography.bodyMedium)
-        } else {
-            LazyColumn(modifier = Modifier.weight(1f)) {
-                items(events, key = { it.id }) { event -> UnlockEventRow(event) }
+        // One scrolling list for every section, so the button below always stays visible.
+        LazyColumn(modifier = Modifier.weight(1f)) {
+            item(key = "app_usage_title") { SectionTitle(stringResource(R.string.debug_app_usage_title)) }
+            when {
+                !isUsageAccessGranted -> item(key = "app_usage_no_access") {
+                    SectionMessage(stringResource(R.string.debug_app_usage_no_access))
+                }
+                appUsage.isEmpty() -> item(key = "app_usage_empty") {
+                    SectionMessage(stringResource(R.string.debug_app_usage_empty))
+                }
+                else -> items(appUsage, key = { "app_${it.packageName}" }) { row -> AppUsageRowItem(row) }
+            }
+            item(key = "unlock_events_title") { SectionTitle(stringResource(R.string.debug_unlock_events_title)) }
+            if (events.isEmpty()) {
+                item(key = "unlock_events_empty") { SectionMessage(stringResource(R.string.debug_empty)) }
+            } else {
+                items(events, key = { "unlock_${it.id}" }) { event -> UnlockEventRow(event) }
             }
         }
         Spacer(Modifier.height(8.dp))
@@ -64,6 +95,36 @@ private fun HealthStatusBanner(health: HealthCheckResult?) {
         is HealthCheckResult.Failure -> stringResource(R.string.debug_backend_error, health.reason)
     }
     Text(text, style = MaterialTheme.typography.bodyMedium)
+}
+
+@Composable
+private fun SectionTitle(text: String) {
+    Text(
+        text,
+        style = MaterialTheme.typography.titleMedium,
+        modifier = Modifier.padding(top = 16.dp, bottom = 4.dp),
+    )
+}
+
+@Composable
+private fun SectionMessage(text: String) {
+    Text(text, style = MaterialTheme.typography.bodyMedium, modifier = Modifier.padding(vertical = 8.dp))
+}
+
+@Composable
+private fun AppUsageRowItem(row: AppUsageRow) {
+    ListItem(
+        headlineContent = { Text(row.label) },
+        supportingContent = { Text(usageDurationText(UsageDuration.of(row.totalMillis))) },
+    )
+}
+
+@Composable
+private fun usageDurationText(duration: UsageDuration): String = when (duration) {
+    UsageDuration.UnderAMinute -> stringResource(R.string.duration_under_a_minute)
+    is UsageDuration.Minutes -> stringResource(R.string.duration_minutes, duration.minutes)
+    is UsageDuration.HoursAndMinutes ->
+        stringResource(R.string.duration_hours_minutes, duration.hours, duration.minutes)
 }
 
 @Composable

@@ -6,12 +6,13 @@ import android.content.Intent
 import com.kinsync.android.KinSyncApplication
 
 /**
- * Restarts monitoring after reboot, but only if the elder finished onboarding and agreed to the
- * current consent text (FR-2.4, FR-7.1).
+ * Installing an app update stops [MonitoringService]. Android then sends this app
+ * `MY_PACKAGE_REPLACED`, so monitoring resumes without anyone opening the app, but only when
+ * the elder agreed to the current consent text (FR-7.1).
  */
-class BootCompletedReceiver : BroadcastReceiver() {
+class PackageReplacedReceiver : BroadcastReceiver() {
     override fun onReceive(context: Context, intent: Intent) {
-        if (intent.action != Intent.ACTION_BOOT_COMPLETED) return
+        if (intent.action != Intent.ACTION_MY_PACKAGE_REPLACED) return
 
         val container = (context.applicationContext as KinSyncApplication).container
         if (container.consentManager.currentState().canCollect) {

@@ -43,8 +43,17 @@
     <string name="debug_backend_ok">Backend reachable: %1$s</string>
     <string name="debug_backend_error">Backend unreachable: %1$s</string>
     <string name="debug_revoke_consent">Stop monitoring</string>
+    <string name="debug_app_usage_title">App usage today</string>
+    <string name="debug_app_usage_empty">No app usage recorded yet today. Use an app, then come
+        back here.</string>
+    <string name="debug_app_usage_no_access">Usage access is off, so app usage is not being
+        recorded. Turn on "Usage access" for KinSync in Settings.</string>
+    <string name="debug_unlock_events_title">Unlock and screen events</string>
+    <string name="duration_hours_minutes">%1$d h %2$02d min</string>
+    <string name="duration_minutes">%1$d min</string>
+    <string name="duration_under_a_minute">under 1 min</string>
 
     <string name="monitoring_notification_title">KinSync is watching over you</string>
-    <string name="monitoring_notification_body">Passively noting unlock activity on this device.</string>
+    <string name="monitoring_notification_body">Passively noting phone activity on this device.</string>
     <string name="monitoring_notification_channel_name">KinSync Monitoring</string>
 </resources>

@@ -14,7 +14,7 @@ object KinSyncDestinations {
      * the elder agreed to the current consent text; otherwise the consent screen.
      */
     fun startDestinationFor(state: ConsentState): String =
-        if (state.onboardingComplete && state.isConsentCurrent) DEBUG else CONSENT
+        if (state.canCollect) DEBUG else CONSENT
 
     /**
      * Screen to open after the elder agrees on the consent screen. Someone re-consenting after an

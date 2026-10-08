@@ -11,6 +11,7 @@ import androidx.core.app.NotificationCompat
 import androidx.core.content.ContextCompat
 import com.kinsync.android.KinSyncApplication
 import com.kinsync.android.R
+import com.kinsync.android.usage.AppUsageCollectionWorker
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
@@ -21,6 +22,10 @@ import kotlinx.coroutines.launch
  * Foreground service that keeps [UnlockEventReceiver] alive across app-process states so the
  * dead-man's-switch data (Phase-2+) is never missing a day (NFR-2). Runs as `specialUse` since no
  * standard foreground-service type covers passive wellbeing monitoring.
+ *
+ * Every path that starts monitoring (onboarding, app open, reboot, app update) goes through
+ * [start], so starting the service also schedules the periodic app-usage collection, and
+ * [stop] cancels it.
  */
 class MonitoringService : Service() {
 
@@ -38,6 +43,7 @@ class MonitoringService : Service() {
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
         startForeground(NOTIFICATION_ID, buildNotification())
         registerReceiverIfNeeded()
+        AppUsageCollectionWorker.schedule(this)
         return START_STICKY
     }
 
@@ -96,6 +102,7 @@ class MonitoringService : Service() {
         }
 
         fun stop(context: Context) {
+            AppUsageCollectionWorker.cancel(context)
             context.stopService(Intent(context, MonitoringService::class.java))
         }
     }

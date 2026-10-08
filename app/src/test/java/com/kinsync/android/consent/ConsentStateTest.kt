@@ -74,4 +74,14 @@ class ConsentStateTest {
 
         assertTrue(state.isConsentCurrent)
     }
+
+    @Test
+    fun canCollect_onlyWithCurrentConsentAndFinishedOnboarding() {
+        val current = ConsentState(hasConsented = true, onboardingComplete = true, consentedVersion = CURRENT_CONSENT_VERSION)
+
+        assertTrue(current.canCollect)
+        assertFalse(current.copy(onboardingComplete = false).canCollect)
+        assertFalse(current.copy(consentedVersion = LEGACY_CONSENT_VERSION).canCollect)
+        assertFalse(current.copy(hasConsented = false).canCollect)
+    }
 }

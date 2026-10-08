@@ -31,6 +31,13 @@ data class ConsentState(
      */
     val needsReconsent: Boolean
         get() = onboardingComplete && !isConsentCurrent
+
+    /**
+     * True when collection may run: onboarding is finished and the elder agreed to the current
+     * consent text. Used wherever monitoring is started without the elder on screen.
+     */
+    val canCollect: Boolean
+        get() = onboardingComplete && isConsentCurrent
 }
 
 /**
