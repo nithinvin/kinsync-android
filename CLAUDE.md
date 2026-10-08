@@ -36,12 +36,28 @@ IDs unchanged).
 ./gradlew assembleDebug                 # build
 ./gradlew test                          # JVM unit tests (app/src/test)
 ./gradlew test --tests 'com.kinsync.android.network.BackendConfigTest'   # single class
-./gradlew connectedAndroidTest          # instrumented tests (app/src/androidTest) — needs device/emulator
+./gradlew connectedAndroidTest          # instrumented tests — EMULATOR ONLY, see warning below
 ./gradlew lint                          # Android Lint
 ./gradlew installDebug                  # install on connected device
 ./gradlew installDebug -PKINSYNC_BASE_URL=https://other-host   # point at another backend
 adb logcat --pid=$(adb shell pidof -s com.kinsync.android)
 ```
+
+**Demo phone safety:** the demo phone holds weeks of real collected data that the reviews rely
+on. Never run `connectedAndroidTest` (or anything that uninstalls the app) while the demo phone
+is connected — Gradle uninstalls the app after instrumented tests, deleting its data. Run
+instrumented tests on an emulator by serial instead:
+
+```bash
+adb -s emulator-5554 install -r -t app/build/outputs/apk/debug/app-debug.apk
+adb -s emulator-5554 install -r -t app/build/outputs/apk/androidTest/debug/app-debug-androidTest.apk
+adb -s emulator-5554 shell am instrument -w com.kinsync.android.test/androidx.test.runner.AndroidJUnitRunner
+```
+
+Update the phone only with `adb -s <phone-serial> install -r` (keeps data), after copying its
+database off with `adb exec-out run-as com.kinsync.android cat databases/kinsync.db` (also the
+`-wal` and `-shm` files) as a backup. Debug builds must be signed with the team's shared debug
+keystore, or the phone refuses the update — see [docs/build-and-install.md](docs/build-and-install.md).
 
 Needs JDK 17+ and Android SDK 35 (`local.properties` with `sdk.dir`, gitignored) — see
 [docs/setup.md](docs/setup.md).

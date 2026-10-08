@@ -1,4 +1,4 @@
-# Building & Deploying to a Device (Phase-1)
+# Building & Deploying to a Device
 
 Backend operations are in the [kinsync-docs runbooks](https://github.com/nithinvin/kinsync-docs/tree/main/runbooks); preparing a phone
 for a review demo is [android-demo-device](https://github.com/nithinvin/kinsync-docs/blob/main/runbooks/android-demo-device.md). There is no server-side
@@ -17,6 +17,25 @@ Logs while developing:
 ```bash
 adb logcat --pid=$(adb shell pidof -s com.kinsync.android)
 ```
+
+### Updating a phone without losing its data
+
+- **Shared debug keystore.** `adb install -r` only updates an app signed with the same key. The
+  team uses one debug keystore (Sri Hasini's), copied to each developer machine at the path
+  Gradle uses — `~/.android/debug.keystore`, or `~/.config/.android/debug.keystore` on newer
+  setups. Its SHA-256 fingerprint starts `EE:BE:D8:96`. Check with
+  `keytool -list -v -keystore <path> -storepass android | grep SHA256`. Never commit it.
+  A build signed with a different key fails with `INSTALL_FAILED_UPDATE_INCOMPATIBLE`; **do not
+  uninstall** to get round that on the demo phone — get the shared keystore instead.
+- **Back up first:** copy `databases/kinsync.db`, `kinsync.db-wal` and `kinsync.db-shm` off the
+  phone with `adb exec-out run-as com.kinsync.android cat databases/<file> > <file>` (works for
+  debug builds). Keep the copy off GitHub — it is real personal data.
+- **Install:** `adb -s <phone-serial> install -r app/build/outputs/apk/debug/app-debug.apk`.
+- **Open the app afterwards.** Installing an update stops the monitoring service; opening
+  KinSync starts it again (since `cf166db`).
+- **Instrumented tests on an emulator only.** `./gradlew connectedAndroidTest` uninstalls the app
+  from every connected device when it finishes. Use an emulator and run the tests by serial
+  (commands in [CLAUDE.md](../CLAUDE.md#commands)).
 
 ## 2. Release build (unsigned, Phase-1)
 
@@ -37,7 +56,8 @@ a later phase once the app has real functionality worth distributing beyond the 
 
 After installing, walk through onboarding once to confirm the Phase-1 slice works end-to-end:
 
-1. **Consent screen** — read the plain-language explanation, tap "I understand, continue".
+1. **Consent screen** — read the list of collected signals, tap "I agree, continue". (After
+   an upgrade that adds signals, the same screen appears titled "KinSync has changed".)
 2. **Usage access screen** — tap "Open settings", grant "Permit usage access" for KinSync in the
    Settings screen that opens, then return to the app (the "Continue" button enables
    automatically once granted).
@@ -78,5 +98,6 @@ app storage, so a plain uninstall clears everything (FR-7.3-equivalent local res
 adb uninstall com.kinsync.android
 ```
 
-The in-app "Stop monitoring" button on the debug screen does the same thing without uninstalling:
-it revokes local consent, stops the foreground service, and returns to the consent screen.
+The in-app "Stop monitoring" button on the debug screen revokes local consent, stops the foreground
+service and returns to the consent screen, without deleting collected data. "No, don't monitor me" on
+the consent screen does the same.
