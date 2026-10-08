@@ -62,6 +62,12 @@ com.kinsync.android
   battery-optimization allowlist (+ `POST_NOTIFICATIONS` request on API 33+) → debug/home screen.
   Each permission screen re-checks its permission on `ON_RESUME` so the "Continue" button unlocks
   automatically after the user returns from Settings.
+- **Consent is versioned** (`CURRENT_CONSENT_VERSION` in `consent/ConsentManager.kt`). The
+  consent screen lists every collected signal; whenever that list changes, the version is bumped.
+  An install that agreed to an older text (Phase-1 installs count as version 1) is shown the
+  consent screen again with a "KinSync has changed" title. Agreeing returns straight to the main
+  screen; declining stops `MonitoringService` and clears consent. Collectors added from Phase-2
+  onwards must check `ConsentState.isConsentCurrent` before recording anything.
 
 ## What's explicitly out of scope for Phase-1
 

@@ -2,12 +2,26 @@
     <string name="app_name">KinSync</string>
 
     <string name="consent_title">Before we start</string>
-    <string name="consent_body">KinSync will notice when you unlock your phone and use it, so
-        it can quietly check that everything looks normal for you. It never reads what you type,
-        never sees which apps you open, and never tracks where you go. Only a simple
-        \"I\'m okay\" style signal is ever sent to your family — not your raw activity.
-        You can turn this off at any time.</string>
-    <string name="consent_agree">I understand, continue</string>
+    <string name="consent_title_updated">KinSync has changed</string>
+    <string name="consent_updated_intro">KinSync now notices a few more things. Please read
+        what it does and agree again to keep it running.</string>
+    <string name="consent_intro">KinSync quietly checks that your day looks normal for you. To
+        do that, it notices:</string>
+    <string name="consent_signal_unlocks">When you unlock your phone and when the screen turns
+        on or off</string>
+    <string name="consent_signal_app_usage">Which apps you use and for how long</string>
+    <string name="consent_signal_last_moved">When your phone last moved (no step counting, no
+        location)</string>
+    <string name="consent_signal_activity">Whether you are still, walking or in a
+        vehicle</string>
+    <string name="consent_privacy">All of this stays on this phone, and you can see it in the
+        app. KinSync never reads what you type, never listens, and never tracks where you go.
+        Only a simple \"I\'m okay\" signal will ever be sent to your family. You can turn this
+        off at any time.</string>
+    <string name="consent_agree">I agree, continue</string>
+    <string name="consent_decline">No, don\'t monitor me</string>
+    <string name="consent_declined_message">KinSync is off. Nothing is being collected. You can
+        agree above whenever you are ready.</string>
 
     <string name="usage_access_title">Allow activity check</string>
     <string name="usage_access_body">Android requires a special permission called \"Usage

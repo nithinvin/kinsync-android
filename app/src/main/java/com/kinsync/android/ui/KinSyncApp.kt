@@ -11,7 +11,6 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import com.kinsync.android.AppContainer
 import com.kinsync.android.collector.MonitoringService
-import com.kinsync.android.consent.ConsentState
 import com.kinsync.android.ui.debug.DebugEventListScreen
 import com.kinsync.android.ui.debug.DebugViewModel
 import com.kinsync.android.ui.onboarding.BatteryOptimizationScreen
@@ -27,21 +26,33 @@ fun KinSyncApp(container: AppContainer) {
     val navController = rememberNavController()
     val coroutineScope = remember { CoroutineScope(SupervisorJob()) }
 
-    val consentState by container.consentManager.observeState()
-        .collectAsState(initial = ConsentState(hasConsented = false, onboardingComplete = false))
-
-    val startDestination = if (consentState.onboardingComplete) {
-        KinSyncDestinations.DEBUG
-    } else {
-        KinSyncDestinations.CONSENT
+    // Read once, synchronously, so the first frame already opens the right screen.
+    val startDestination = remember {
+        KinSyncDestinations.startDestinationFor(container.consentManager.currentState())
     }
 
     NavHost(navController = navController, startDestination = startDestination) {
         composable(KinSyncDestinations.CONSENT) {
+            val consentState by container.consentManager.observeState()
+                .collectAsState(initial = container.consentManager.currentState())
             ConsentScreen(
+                isReconsent = consentState.needsReconsent,
                 onAgree = {
+                    val next = KinSyncDestinations.afterConsentFor(consentState)
                     coroutineScope.launch { container.consentManager.grantConsent() }
-                    navController.navigate(KinSyncDestinations.USAGE_ACCESS)
+                    if (next == KinSyncDestinations.DEBUG) {
+                        // Re-consent: permissions are already granted, so resume collection.
+                        MonitoringService.start(context)
+                    }
+                    navController.navigate(next) {
+                        if (next == KinSyncDestinations.DEBUG) {
+                            popUpTo(KinSyncDestinations.CONSENT) { inclusive = true }
+                        }
+                    }
+                },
+                onDecline = {
+                    coroutineScope.launch { container.consentManager.revokeConsentAndReset() }
+                    MonitoringService.stop(context)
                 },
             )
         }
