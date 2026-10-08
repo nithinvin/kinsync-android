@@ -19,7 +19,9 @@ IDs unchanged).
 
 ## Hard rules
 
-- **Never commit or push without the user's explicit go-ahead.**
+- **Review before commit:** always make the changes in the working tree, summarise them and stop.
+  The user reviews (and, for app changes, tests on the phone). Only after the user explicitly
+  approves, commit and push. Never commit or push without that go-ahead.
 - **No `Co-Authored-By` / AI attribution trailer** in commit messages.
 - **Repo is public:** never commit keystores, tokens, `local.properties`, or the VM's IP.
 - **Privacy (NON-NEGOTIABLE):** raw activity data (unlock events, app usage, motion) stays in the
