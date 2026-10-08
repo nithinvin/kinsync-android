@@ -1,6 +1,7 @@
 package com.kinsync.android.ui
 
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
@@ -29,6 +30,14 @@ fun KinSyncApp(container: AppContainer) {
     // Read once, synchronously, so the first frame already opens the right screen.
     val startDestination = remember {
         KinSyncDestinations.startDestinationFor(container.consentManager.currentState())
+    }
+
+    // Installing an app update stops the monitoring service. Opening the app restarts it when
+    // the elder has already consented and finished onboarding (starting it twice is harmless).
+    LaunchedEffect(Unit) {
+        if (startDestination == KinSyncDestinations.DEBUG) {
+            MonitoringService.start(context)
+        }
     }
 
     NavHost(navController = navController, startDestination = startDestination) {
