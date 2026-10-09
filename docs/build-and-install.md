@@ -73,7 +73,10 @@ After a fresh install, walk through onboarding once to confirm everything works 
 5. You should land on **"Your day so far"**: first unlock, unlocks, screen time, most used
    apps, last moved, and time still / walking / in a vehicle. App use is added up about every
    15 minutes, so a fresh install shows little at first.
-6. Tap **"See everything KinSync recorded"** for the debug screen:
+6. Tap **"My day, hour by hour"** for the timeline: a 24-hour band and a list of the day's
+   phone sessions (with the apps used), activity periods and movements. "Day before" shows
+   earlier days.
+7. Go back and tap **"See everything KinSync recorded"** for the debug screen:
    - A "Backend reachable: …" or "Backend unreachable: …" banner (the Phase-1 stretch-goal
      `/health` check).
    - A live-updating list of unlock/screen events — lock and unlock the phone a few times and
