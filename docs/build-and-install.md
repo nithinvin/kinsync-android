@@ -35,7 +35,11 @@ adb logcat --pid=$(adb shell pidof -s com.kinsync.android)
   KinSync starts it again (since `cf166db`).
 - **Instrumented tests on an emulator only.** `./gradlew connectedAndroidTest` uninstalls the app
   from every connected device when it finishes. Use an emulator and run the tests by serial
-  (commands in [CLAUDE.md](../CLAUDE.md#commands)).
+  (commands in [CLAUDE.md](../CLAUDE.md#commands)). The tests clear the emulator's consent
+  settings, so the app opens on the consent screen afterwards.
+- **Driving the emulator from a script:** on a slow (software-rendered) emulator, use
+  `adb shell input touchscreen tap <x> <y>` and wait a few seconds after a `uiautomator dump`
+  before tapping; taps sent straight after a dump are often lost.
 
 ## 2. Release build (unsigned, Phase-1)
 
@@ -54,16 +58,22 @@ a later phase once the app has real functionality worth distributing beyond the 
 
 ## 3. First-run checklist on the phone
 
-After installing, walk through onboarding once to confirm the Phase-1 slice works end-to-end:
+After a fresh install, walk through onboarding once to confirm everything works end-to-end:
 
 1. **Consent screen** — read the list of collected signals, tap "I agree, continue". (After
    an upgrade that adds signals, the same screen appears titled "KinSync has changed".)
 2. **Usage access screen** — tap "Open settings", grant "Permit usage access" for KinSync in the
    Settings screen that opens, then return to the app (the "Continue" button enables
    automatically once granted).
-3. **Battery optimization screen** — tap "Allow background activity" and confirm the system
+3. **"Notice walking and resting" screen** — tap "Allow" and allow "Physical activity" in the
+   system dialog (Android 10+), then "Continue". "Not now" skips it; the summary and debug
+   screens then offer "Allow physical activity".
+4. **Battery optimization screen** — tap "Allow background activity" and confirm the system
    dialog; a `POST_NOTIFICATIONS` prompt will also appear on Android 13+. Tap "Continue".
-4. You should land on the **debug screen**:
+5. You should land on **"Your day so far"**: first unlock, unlocks, screen time, most used
+   apps, last moved, and time still / walking / in a vehicle. App use is added up about every
+   15 minutes, so a fresh install shows little at first.
+6. Tap **"See everything KinSync recorded"** for the debug screen:
    - A "Backend reachable: …" or "Backend unreachable: …" banner (the Phase-1 stretch-goal
      `/health` check).
    - A live-updating list of unlock/screen events — lock and unlock the phone a few times and

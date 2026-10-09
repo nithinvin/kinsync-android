@@ -21,17 +21,27 @@ This repo's own docs cover what's specific to the Android client:
 - [`CONSTITUTION.md`](CONSTITUTION.md) — non-negotiable coding/quality/security standards for
   this repo
 
-## Current status: Phase-1
+## Current status: Phase-2 (in progress, for Review III)
 
-Per [phase-1](https://github.com/nithinvin/kinsync-docs/blob/main/plan/phase-1.md), Phase-1 proves the two biggest technical risks early, with **no business logic
-yet** (no baseline, deviation detection, pairing, or escalation):
+Phase-1 (tag `review-2`) proved the two biggest technical risks: a foreground service capturing
+unlock / screen events into Room, onboarding with plain-language permission screens, a debug
+list, and a `/health` check against `kinsync-api`.
 
-- ✅ Onboarding screen requesting the `PACKAGE_USAGE_STATS` special permission and the
-  battery-optimization allowlist, each with a plain-language rationale.
-- ✅ A `BroadcastReceiver` (kept alive via a foreground `Service`) capturing
-  `ACTION_USER_PRESENT` / screen on-off events into a local Room database.
-- ✅ A debug/list screen showing captured events live.
-- ✅ Stretch goal: a `/health` check against the deployed `kinsync-api` backend on app launch.
+Per [phase-2](https://github.com/nithinvin/kinsync-docs/blob/main/plan/phase-2.md), Phase-2
+collects every on-device signal and shows it to the elder. Everything stays on the phone; there
+is still no baseline, deviation detection, pairing or escalation.
+
+- ✅ Versioned consent listing every collected signal; re-consent after an upgrade (M1).
+- ✅ App-usage intervals from `UsageStatsManager`, collected every 15 minutes (M2).
+- ✅ "Last moved" from the significant-motion sensor, time only (M3).
+- ✅ Still / walking / in a vehicle from the Activity Recognition Transition API, with its own
+  permission screen (M4).
+- ✅ "Your day so far" summary as the main screen: first unlock, unlocks, screen time, top
+  apps, last moved, time per activity (M5).
+- ⏳ "My day" timeline with a day picker (M6), wrap-up and tag `review-3` (M7).
+
+Live step tracker: kinsync-docs
+[`plan/phase-2.md` §10](https://github.com/nithinvin/kinsync-docs/blob/main/plan/phase-2.md).
 
 ## Quick start
 
