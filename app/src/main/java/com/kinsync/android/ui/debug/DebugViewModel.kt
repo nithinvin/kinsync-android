@@ -5,6 +5,8 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
 import com.kinsync.android.AppContainer
+import com.kinsync.android.activityrecognition.ActivityTransitionRecord
+import com.kinsync.android.activityrecognition.ActivityTransitionRecordDao
 import com.kinsync.android.collector.UnlockEvent
 import com.kinsync.android.collector.UnlockEventDao
 import com.kinsync.android.network.HealthApiClient
@@ -38,6 +40,7 @@ class DebugViewModel(
     dao: UnlockEventDao,
     appUsageDao: AppUsageIntervalDao,
     movementDao: MovementEventDao,
+    activityTransitionDao: ActivityTransitionRecordDao,
     private val healthApiClient: HealthApiClient,
     appLabelResolver: AppLabelResolver,
     /** Whether usage access is granted; read once when the screen opens. */
@@ -72,6 +75,11 @@ class DebugViewModel(
             LastMovedStatus.of(isMotionSensorAvailable, latest = null),
         )
 
+    /** The newest activity transitions, newest first; the first one is the current activity. */
+    val recentActivityTransitions: StateFlow<List<ActivityTransitionRecord>> = activityTransitionDao
+        .observeRecent(RECENT_ACTIVITY_TRANSITIONS)
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(STOP_TIMEOUT_MILLIS), emptyList())
+
     private val _healthStatus = MutableStateFlow<HealthCheckResult?>(null)
     val healthStatus: StateFlow<HealthCheckResult?> = _healthStatus.asStateFlow()
 
@@ -83,6 +91,7 @@ class DebugViewModel(
 
     private companion object {
         const val STOP_TIMEOUT_MILLIS = 5_000L
+        const val RECENT_ACTIVITY_TRANSITIONS = 10
     }
 
     class Factory(
@@ -98,6 +107,7 @@ class DebugViewModel(
                 dao = container.database.unlockEventDao(),
                 appUsageDao = container.database.appUsageIntervalDao(),
                 movementDao = container.database.movementEventDao(),
+                activityTransitionDao = container.database.activityTransitionRecordDao(),
                 healthApiClient = container.healthApiClient,
                 appLabelResolver = PackageManagerAppLabelResolver(appContext),
                 isUsageAccessGranted = UsageAccessPermission.isGranted(appContext),

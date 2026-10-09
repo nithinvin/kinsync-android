@@ -32,8 +32,10 @@ com.kinsync.android
 ├── usage/                     App-usage intervals: UsageStatsManager reader, interval builder,
 │                              collector, WorkManager job, Room entity + DAO (FR-2.2)
 ├── movement/                  "Last moved": significant-motion trigger, Room entity + DAO (FR-2.7)
+├── activityrecognition/       Still / walking / in vehicle: Play services transition request,
+│                              receiver, mapper, Room entity + DAO (FR-2.3)
 ├── data/                      Room database, migrations + type converters (schemas in app/schemas/)
-├── permissions/                Usage-access + battery-optimization permission helpers (FR-2.2)
+├── permissions/                Usage-access, battery-optimization and activity-recognition helpers
 ├── network/                   HealthApiClient — the Phase-1 stretch-goal `/health` check only
 └── ui/                        Compose screens (onboarding flow + debug event list), theme, nav
 ```
@@ -54,8 +56,9 @@ com.kinsync.android
   only when `ConsentState.canCollect` is true (onboarding finished and the current consent text
   agreed) — collection never starts without consent (FR-2.4, FR-7.1).
 - **Room stores only local, on-device signals.** `UnlockEvent(eventType, timestampEpochMillis)`
-  `AppUsageInterval(packageName, startEpochMillis, endEpochMillis)` and
-  `MovementEvent(timestampEpochMillis)`. No content, no location. App names stay on the phone
+  `AppUsageInterval(packageName, startEpochMillis, endEpochMillis)`,
+  `MovementEvent(timestampEpochMillis)` and
+  `ActivityTransitionRecord(activity, kind, timestampEpochMillis)`. No content, no location. App names stay on the phone
   (NFR-1).
 - **"Last moved" uses the significant-motion sensor only.** `SignificantMotionDetector` arms
   Android's one-shot `TYPE_SIGNIFICANT_MOTION` trigger inside `MonitoringService` and re-arms it
@@ -63,6 +66,17 @@ com.kinsync.android
   counting (Phase-2 decision 1). Phones without the sensor show "last moved is not available".
   Movement is recorded only while `ConsentState.canCollect` is true, because Android can
   restart the service (`START_STICKY`) without a consent check.
+- **Still / walking / in vehicle comes from the Activity Recognition Transition API** (Google
+  Play services, `play-services-location`). `ActivityTransitionRegistrar` asks for ENTER and EXIT
+  of `STILL`, `WALKING` and `IN_VEHICLE` only, delivered to `ActivityTransitionReceiver` through
+  a mutable `PendingIntent`. Play services forgets the request after a reboot or an app update,
+  so `MonitoringService` registers again every time it starts; `MonitoringService.stop`
+  removes it. The receiver converts each event's time since boot to wall-clock time
+  (`ActivityTransitionMapper`, plain Kotlin, JVM-tested) and stores only the activity, the kind
+  of change and the time, and only while `ConsentState.canCollect` is true. Rows are unique on
+  (activity, kind, time), so a repeated delivery is stored once. The `ACTIVITY_RECOGNITION`
+  runtime permission (Android 10+) is asked for on its own screen with a plain-language reason;
+  the elder can say "Not now", and the debug screen then offers to allow it later.
 - **App usage is collected in the background with WorkManager**, once when monitoring starts
   (including every app open) and then every 15 minutes. `MonitoringService.start` schedules the
   job and `MonitoringService.stop` cancels it; the job itself also checks consent and usage
@@ -81,8 +95,8 @@ com.kinsync.android
   `MockWebServer`.
 - **Large-text Material 3 theme.** `KinSyncTypography` bumps default type sizes to satisfy the
   elder-facing usability requirement (NFR-6) ahead of any dedicated accessibility pass.
-- **Onboarding is a 3-step linear flow**: consent → usage-access rationale (Settings deep-link) →
-  battery-optimization allowlist (+ `POST_NOTIFICATIONS` request on API 33+) → debug/home screen.
+- **Onboarding is a 4-step linear flow**: consent → usage-access rationale (Settings deep-link) →
+  activity-recognition permission (can be skipped) → battery-optimization allowlist (+ `POST_NOTIFICATIONS` request on API 33+) → debug/home screen.
   Each permission screen re-checks its permission on `ON_RESUME` so the "Continue" button unlocks
   automatically after the user returns from Settings.
 - **Consent is versioned** (`CURRENT_CONSENT_VERSION` in `consent/ConsentManager.kt`). The

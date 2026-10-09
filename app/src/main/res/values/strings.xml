@@ -30,6 +30,19 @@
     <string name="usage_access_open_settings">Open settings</string>
     <string name="usage_access_continue">I\'ve granted access, continue</string>
 
+    <string name="activity_permission_title">Notice walking and resting</string>
+    <string name="activity_permission_body">KinSync can notice whether you are still, walking or
+        travelling in a vehicle. Android calls this \"Physical activity\" and asks you to allow
+        it. Only the kind of activity and the time are kept, on this phone. KinSync never records
+        where you go.</string>
+    <string name="activity_permission_allow">Allow</string>
+    <string name="activity_permission_not_now">Not now</string>
+    <string name="activity_permission_granted">Allowed. Thank you.</string>
+    <string name="activity_permission_denied">Not allowed. If you change your mind, open
+        KinSync\'s settings and allow \"Physical activity\".</string>
+    <string name="activity_permission_open_settings">Open settings</string>
+    <string name="activity_permission_continue">Continue</string>
+
     <string name="battery_title">Keep monitoring reliable</string>
     <string name="battery_body">To make sure KinSync can\'t be silently stopped by battery
         optimization, please allow it to run in the background. This does not mean the app runs
@@ -54,6 +67,19 @@
         and it will show here.</string>
     <string name="debug_last_moved_not_available">This phone has no motion sensor KinSync can
         use, so "last moved" is not available.</string>
+    <string name="debug_activity_title">Still, walking or in a vehicle</string>
+    <string name="debug_activity_doing">Now: %1$s (since %2$s)</string>
+    <string name="debug_activity_stopped">Stopped %1$s at %2$s</string>
+    <string name="debug_activity_not_yet">No activity noticed yet. It can take a few minutes
+        after you start or stop walking.</string>
+    <string name="debug_activity_no_permission">\"Physical activity\" is not allowed, so KinSync
+        is not noticing whether you are still, walking or in a vehicle.</string>
+    <string name="debug_activity_allow">Allow physical activity</string>
+    <string name="debug_activity_started">Started %1$s</string>
+    <string name="debug_activity_ended">Stopped %1$s</string>
+    <string name="activity_still">being still</string>
+    <string name="activity_walking">walking</string>
+    <string name="activity_in_vehicle">travelling in a vehicle</string>
     <string name="debug_unlock_events_title">Unlock and screen events</string>
     <string name="duration_hours_minutes">%1$d h %2$02d min</string>
     <string name="duration_minutes">%1$d min</string>

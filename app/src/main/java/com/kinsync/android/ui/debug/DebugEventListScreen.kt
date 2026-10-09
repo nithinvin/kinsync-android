@@ -13,16 +13,28 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.LifecycleEventObserver
+import androidx.lifecycle.compose.LocalLifecycleOwner
 import com.kinsync.android.R
+import com.kinsync.android.activityrecognition.ActivityTransitionRecord
+import com.kinsync.android.activityrecognition.CoarseActivity
+import com.kinsync.android.activityrecognition.CurrentActivityStatus
+import com.kinsync.android.activityrecognition.TransitionKind
 import com.kinsync.android.collector.UnlockEvent
 import com.kinsync.android.movement.LastMovedStatus
 import com.kinsync.android.network.HealthCheckResult
+import com.kinsync.android.permissions.ActivityRecognitionPermission
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
@@ -31,19 +43,40 @@ import java.util.Locale
 @Composable
 fun DebugEventListScreen(
     viewModel: DebugViewModel,
+    onAllowActivityRecognition: () -> Unit,
     onRevokeConsent: () -> Unit,
 ) {
     val events by viewModel.events.collectAsState()
     val appUsage by viewModel.appUsageToday.collectAsState()
     val lastMoved by viewModel.lastMoved.collectAsState()
+    val recentActivity by viewModel.recentActivityTransitions.collectAsState()
     val health by viewModel.healthStatus.collectAsState()
+
+    // Checked again whenever the screen comes back, e.g. after the permission screen or Settings.
+    val context = LocalContext.current
+    var isActivityRecognitionGranted by remember {
+        mutableStateOf(ActivityRecognitionPermission.isGranted(context))
+    }
+    val lifecycleOwner = LocalLifecycleOwner.current
+    DisposableEffect(lifecycleOwner) {
+        val observer = LifecycleEventObserver { _, event ->
+            if (event == Lifecycle.Event.ON_RESUME) {
+                isActivityRecognitionGranted = ActivityRecognitionPermission.isGranted(context)
+            }
+        }
+        lifecycleOwner.lifecycle.addObserver(observer)
+        onDispose { lifecycleOwner.lifecycle.removeObserver(observer) }
+    }
 
     DebugEventListContent(
         health = health,
         isUsageAccessGranted = viewModel.isUsageAccessGranted,
         appUsage = appUsage,
         lastMoved = lastMoved,
+        activityStatus = CurrentActivityStatus.of(isActivityRecognitionGranted, recentActivity.firstOrNull()),
+        recentActivity = recentActivity,
         events = events,
+        onAllowActivityRecognition = onAllowActivityRecognition,
         onRevokeConsent = onRevokeConsent,
     )
 }
@@ -55,7 +88,10 @@ fun DebugEventListContent(
     isUsageAccessGranted: Boolean,
     appUsage: List<AppUsageRow>,
     lastMoved: LastMovedStatus,
+    activityStatus: CurrentActivityStatus,
+    recentActivity: List<ActivityTransitionRecord>,
     events: List<UnlockEvent>,
+    onAllowActivityRecognition: () -> Unit,
     onRevokeConsent: () -> Unit,
 ) {
     Column(modifier = Modifier
@@ -69,6 +105,17 @@ fun DebugEventListContent(
         LazyColumn(modifier = Modifier.weight(1f)) {
             item(key = "last_moved_title") { SectionTitle(stringResource(R.string.debug_last_moved_title)) }
             item(key = "last_moved") { SectionMessage(lastMovedText(lastMoved)) }
+            item(key = "activity_title") { SectionTitle(stringResource(R.string.debug_activity_title)) }
+            item(key = "activity_status") { SectionMessage(activityStatusText(activityStatus)) }
+            if (activityStatus == CurrentActivityStatus.NoPermission) {
+                item(key = "activity_allow") {
+                    OutlinedButton(onClick = onAllowActivityRecognition, modifier = Modifier.fillMaxWidth()) {
+                        Text(stringResource(R.string.debug_activity_allow))
+                    }
+                }
+            } else {
+                items(recentActivity, key = { "activity_${it.id}" }) { record -> ActivityTransitionRow(record) }
+            }
             item(key = "app_usage_title") { SectionTitle(stringResource(R.string.debug_app_usage_title)) }
             when {
                 !isUsageAccessGranted -> item(key = "app_usage_no_access") {
@@ -141,6 +188,45 @@ private fun lastMovedText(status: LastMovedStatus): String = when (status) {
         val formatter = remember { SimpleDateFormat(DATE_TIME_PATTERN, Locale.getDefault()) }
         stringResource(R.string.debug_last_moved_at, formatter.format(Date(status.timestampEpochMillis)))
     }
+}
+
+@Composable
+private fun activityName(activity: CoarseActivity): String = when (activity) {
+    CoarseActivity.STILL -> stringResource(R.string.activity_still)
+    CoarseActivity.WALKING -> stringResource(R.string.activity_walking)
+    CoarseActivity.IN_VEHICLE -> stringResource(R.string.activity_in_vehicle)
+}
+
+@Composable
+private fun activityStatusText(status: CurrentActivityStatus): String {
+    val formatter = remember { SimpleDateFormat(DATE_TIME_PATTERN, Locale.getDefault()) }
+    return when (status) {
+        CurrentActivityStatus.NoPermission -> stringResource(R.string.debug_activity_no_permission)
+        CurrentActivityStatus.NotYet -> stringResource(R.string.debug_activity_not_yet)
+        is CurrentActivityStatus.Doing -> stringResource(
+            R.string.debug_activity_doing,
+            activityName(status.activity),
+            formatter.format(Date(status.sinceEpochMillis)),
+        )
+        is CurrentActivityStatus.Stopped -> stringResource(
+            R.string.debug_activity_stopped,
+            activityName(status.activity),
+            formatter.format(Date(status.atEpochMillis)),
+        )
+    }
+}
+
+@Composable
+private fun ActivityTransitionRow(record: ActivityTransitionRecord) {
+    val formatter = remember { SimpleDateFormat(DATE_TIME_PATTERN, Locale.getDefault()) }
+    val headline = when (record.kind) {
+        TransitionKind.ENTER -> stringResource(R.string.debug_activity_started, activityName(record.activity))
+        TransitionKind.EXIT -> stringResource(R.string.debug_activity_ended, activityName(record.activity))
+    }
+    ListItem(
+        headlineContent = { Text(headline) },
+        supportingContent = { Text(formatter.format(Date(record.timestampEpochMillis))) },
+    )
 }
 
 private const val DATE_TIME_PATTERN = "yyyy-MM-dd HH:mm:ss"

@@ -37,5 +37,22 @@ object Migrations {
         }
     }
 
-    val ALL = arrayOf(MIGRATION_1_2, MIGRATION_2_3)
+    /** Phase-2 M4: adds still / walking / in-vehicle transitions (Activity Recognition). */
+    val MIGRATION_3_4 = object : Migration(3, 4) {
+        override fun migrate(db: SupportSQLiteDatabase) {
+            db.execSQL(
+                "CREATE TABLE IF NOT EXISTS `activity_transitions` (" +
+                    "`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, " +
+                    "`activity` TEXT NOT NULL, " +
+                    "`kind` TEXT NOT NULL, " +
+                    "`timestampEpochMillis` INTEGER NOT NULL)",
+            )
+            db.execSQL(
+                "CREATE UNIQUE INDEX IF NOT EXISTS `index_activity_transitions_activity_kind_timestampEpochMillis` " +
+                    "ON `activity_transitions` (`activity`, `kind`, `timestampEpochMillis`)",
+            )
+        }
+    }
+
+    val ALL = arrayOf(MIGRATION_1_2, MIGRATION_2_3, MIGRATION_3_4)
 }

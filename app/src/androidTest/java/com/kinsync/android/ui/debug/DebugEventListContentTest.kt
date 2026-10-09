@@ -4,9 +4,15 @@ import androidx.activity.ComponentActivity
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.junit4.createAndroidComposeRule
 import androidx.compose.ui.test.onNodeWithText
+import androidx.compose.ui.test.performClick
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.kinsync.android.R
+import com.kinsync.android.activityrecognition.ActivityTransitionRecord
+import com.kinsync.android.activityrecognition.CoarseActivity
+import com.kinsync.android.activityrecognition.CurrentActivityStatus
+import com.kinsync.android.activityrecognition.TransitionKind
 import com.kinsync.android.movement.LastMovedStatus
+import org.junit.Assert.assertEquals
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -23,6 +29,9 @@ class DebugEventListContentTest {
         isUsageAccessGranted: Boolean = true,
         appUsage: List<AppUsageRow> = emptyList(),
         lastMoved: LastMovedStatus = LastMovedStatus.NotYet,
+        activityStatus: CurrentActivityStatus = CurrentActivityStatus.NotYet,
+        recentActivity: List<ActivityTransitionRecord> = emptyList(),
+        onAllowActivityRecognition: () -> Unit = {},
     ) {
         composeRule.setContent {
             DebugEventListContent(
@@ -30,7 +39,10 @@ class DebugEventListContentTest {
                 isUsageAccessGranted = isUsageAccessGranted,
                 appUsage = appUsage,
                 lastMoved = lastMoved,
+                activityStatus = activityStatus,
+                recentActivity = recentActivity,
                 events = emptyList(),
+                onAllowActivityRecognition = onAllowActivityRecognition,
                 onRevokeConsent = {},
             )
         }
@@ -77,5 +89,41 @@ class DebugEventListContentTest {
         show(lastMoved = LastMovedStatus.NotYet)
 
         composeRule.onNodeWithText(text(R.string.debug_last_moved_not_yet)).assertIsDisplayed()
+    }
+
+    @Test
+    fun activityPermissionOff_offersToAllowIt() {
+        var allowClicks = 0
+        show(activityStatus = CurrentActivityStatus.NoPermission, onAllowActivityRecognition = { allowClicks++ })
+
+        composeRule.onNodeWithText(text(R.string.debug_activity_no_permission)).assertIsDisplayed()
+        composeRule.onNodeWithText(text(R.string.debug_activity_allow)).performClick()
+
+        assertEquals(1, allowClicks)
+    }
+
+    @Test
+    fun noActivityYet_saysSo() {
+        show(activityStatus = CurrentActivityStatus.NotYet)
+
+        composeRule.onNodeWithText(text(R.string.debug_activity_not_yet)).assertIsDisplayed()
+        composeRule.onNodeWithText(text(R.string.debug_activity_allow)).assertDoesNotExist()
+    }
+
+    @Test
+    fun recentTransitions_areListedInPlainWords() {
+        val walking = composeRule.activity.getString(R.string.activity_walking)
+        show(
+            activityStatus = CurrentActivityStatus.Doing(CoarseActivity.WALKING, 2_000L),
+            recentActivity = listOf(
+                ActivityTransitionRecord(id = 2, activity = CoarseActivity.WALKING, kind = TransitionKind.ENTER, timestampEpochMillis = 2_000L),
+                ActivityTransitionRecord(id = 1, activity = CoarseActivity.WALKING, kind = TransitionKind.EXIT, timestampEpochMillis = 1_000L),
+            ),
+        )
+
+        composeRule.onNodeWithText(composeRule.activity.getString(R.string.debug_activity_started, walking))
+            .assertIsDisplayed()
+        composeRule.onNodeWithText(composeRule.activity.getString(R.string.debug_activity_ended, walking))
+            .assertIsDisplayed()
     }
 }

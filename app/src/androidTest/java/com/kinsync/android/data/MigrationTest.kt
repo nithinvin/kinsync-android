@@ -85,10 +85,29 @@ class MigrationTest {
     }
 
     @Test
-    fun migrate1To3_phaseOnePhoneReachesTheLatestSchema() {
+    fun migrate3To4_addsActivityTableAndKeepsMovement() {
+        helper.createDatabase(TEST_DB, 3).apply {
+            insert(
+                "movement_events",
+                SQLiteDatabase.CONFLICT_FAIL,
+                ContentValues().apply { put("timestampEpochMillis", 1_760_000_000_000L) },
+            )
+            close()
+        }
+
+        val migrated = helper.runMigrationsAndValidate(TEST_DB, 4, true, Migrations.MIGRATION_3_4)
+        migrated.query("SELECT COUNT(*) FROM movement_events").use { cursor ->
+            cursor.moveToFirst()
+            assertEquals(1, cursor.getInt(0))
+        }
+        migrated.close()
+    }
+
+    @Test
+    fun migrate1To4_phaseOnePhoneReachesTheLatestSchema() {
         helper.createDatabase(TEST_DB, 1).close()
 
-        helper.runMigrationsAndValidate(TEST_DB, 3, true, *Migrations.ALL).close()
+        helper.runMigrationsAndValidate(TEST_DB, 4, true, *Migrations.ALL).close()
     }
 
     private companion object {

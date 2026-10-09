@@ -57,4 +57,23 @@ class KinSyncDestinationsTest {
     fun afterConsent_reconsent_returnsToMainScreen() {
         assertEquals(KinSyncDestinations.DEBUG, KinSyncDestinations.afterConsentFor(phaseOneInstall))
     }
+
+    @Test
+    fun afterActivityRecognition_duringOnboarding_goesToBatteryScreen() {
+        val consentedOnly = ConsentState(
+            hasConsented = true,
+            onboardingComplete = false,
+            consentedVersion = CURRENT_CONSENT_VERSION,
+        )
+
+        assertEquals(
+            KinSyncDestinations.BATTERY_OPTIMIZATION,
+            KinSyncDestinations.afterActivityRecognitionFor(consentedOnly),
+        )
+    }
+
+    @Test
+    fun afterActivityRecognition_fromMainScreen_returnsToMainScreen() {
+        assertEquals(KinSyncDestinations.DEBUG, KinSyncDestinations.afterActivityRecognitionFor(fullyOnboarded))
+    }
 }

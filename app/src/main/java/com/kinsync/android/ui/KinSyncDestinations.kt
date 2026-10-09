@@ -6,6 +6,7 @@ import com.kinsync.android.consent.ConsentState
 object KinSyncDestinations {
     const val CONSENT = "consent"
     const val USAGE_ACCESS = "usage_access"
+    const val ACTIVITY_RECOGNITION = "activity_recognition"
     const val BATTERY_OPTIMIZATION = "battery_optimization"
     const val DEBUG = "debug"
 
@@ -23,4 +24,11 @@ object KinSyncDestinations {
      */
     fun afterConsentFor(state: ConsentState): String =
         if (state.onboardingComplete) DEBUG else USAGE_ACCESS
+
+    /**
+     * Screen to open after the activity-recognition screen. During onboarding the next step is
+     * the battery screen; from the main screen (onboarding already done) it goes back there.
+     */
+    fun afterActivityRecognitionFor(state: ConsentState): String =
+        if (state.onboardingComplete) DEBUG else BATTERY_OPTIMIZATION
 }

@@ -16,6 +16,13 @@
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE_SPECIAL_USE" />
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
 
+    <!-- Still / walking / in vehicle from Google Play services (FR-2.3). A runtime permission
+         from Android 10; before that, the Play services permission is granted at install. -->
+    <uses-permission android:name="android.permission.ACTIVITY_RECOGNITION" />
+    <uses-permission
+        android:name="com.google.android.gms.permission.ACTIVITY_RECOGNITION"
+        android:maxSdkVersion="28" />
+
     <!-- Lets the debug screen show app names instead of package names for apps on the home
          screen and for the home screen itself (Android 11+ package visibility). Names are shown
          on this phone only (NFR-1). -->
@@ -55,7 +62,7 @@
             android:foregroundServiceType="specialUse">
             <property
                 android:name="android.app.PROPERTY_SPECIAL_USE_FGS_SUBTYPE"
-                android:value="Passive on-device logging of unlock, app-usage and movement times for elder safety monitoring (KinSync)" />
+                android:value="Passive on-device logging of unlock, app-usage, movement and activity times for elder safety monitoring (KinSync)" />
         </service>
 
         <receiver
@@ -74,6 +81,11 @@
                 <action android:name="android.intent.action.MY_PACKAGE_REPLACED" />
             </intent-filter>
         </receiver>
+
+        <!-- Reached only through this app's own PendingIntent, handed to Google Play services. -->
+        <receiver
+            android:name=".activityrecognition.ActivityTransitionReceiver"
+            android:exported="false" />
 
     </application>
 

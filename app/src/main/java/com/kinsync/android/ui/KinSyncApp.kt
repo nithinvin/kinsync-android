@@ -14,6 +14,7 @@ import com.kinsync.android.AppContainer
 import com.kinsync.android.collector.MonitoringService
 import com.kinsync.android.ui.debug.DebugEventListScreen
 import com.kinsync.android.ui.debug.DebugViewModel
+import com.kinsync.android.ui.onboarding.ActivityRecognitionScreen
 import com.kinsync.android.ui.onboarding.BatteryOptimizationScreen
 import com.kinsync.android.ui.onboarding.ConsentScreen
 import com.kinsync.android.ui.onboarding.UsageAccessScreen
@@ -67,7 +68,24 @@ fun KinSyncApp(container: AppContainer) {
         }
         composable(KinSyncDestinations.USAGE_ACCESS) {
             UsageAccessScreen(
-                onContinue = { navController.navigate(KinSyncDestinations.BATTERY_OPTIMIZATION) },
+                onContinue = { navController.navigate(KinSyncDestinations.ACTIVITY_RECOGNITION) },
+            )
+        }
+        composable(KinSyncDestinations.ACTIVITY_RECOGNITION) {
+            ActivityRecognitionScreen(
+                onContinue = {
+                    val next = KinSyncDestinations.afterActivityRecognitionFor(
+                        container.consentManager.currentState(),
+                    )
+                    if (next == KinSyncDestinations.DEBUG) {
+                        // Opened from the main screen: register for activity transitions now
+                        // that the permission may be on (starting the service twice is harmless).
+                        MonitoringService.start(context)
+                        navController.popBackStack()
+                    } else {
+                        navController.navigate(next)
+                    }
+                },
             )
         }
         composable(KinSyncDestinations.BATTERY_OPTIMIZATION) {
@@ -87,6 +105,9 @@ fun KinSyncApp(container: AppContainer) {
             )
             DebugEventListScreen(
                 viewModel = debugViewModel,
+                onAllowActivityRecognition = {
+                    navController.navigate(KinSyncDestinations.ACTIVITY_RECOGNITION)
+                },
                 onRevokeConsent = {
                     coroutineScope.launch { container.consentManager.revokeConsentAndReset() }
                     MonitoringService.stop(context)

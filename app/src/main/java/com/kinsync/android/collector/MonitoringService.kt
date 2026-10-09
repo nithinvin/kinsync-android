@@ -12,6 +12,7 @@ import androidx.core.content.ContextCompat
 import com.kinsync.android.AppContainer
 import com.kinsync.android.KinSyncApplication
 import com.kinsync.android.R
+import com.kinsync.android.activityrecognition.ActivityTransitionRegistrar
 import com.kinsync.android.movement.MovementEvent
 import com.kinsync.android.movement.MovementEventDao
 import com.kinsync.android.movement.SignificantMotionDetector
@@ -28,8 +29,8 @@ import kotlinx.coroutines.launch
  * standard foreground-service type covers passive wellbeing monitoring.
  *
  * Every path that starts monitoring (onboarding, app open, reboot, app update) goes through
- * [start], so starting the service also schedules the periodic app-usage collection, and
- * [stop] cancels it.
+ * [start], so starting the service also schedules the periodic app-usage collection and
+ * registers for activity transitions, and [stop] cancels both.
  */
 class MonitoringService : Service() {
 
@@ -56,6 +57,7 @@ class MonitoringService : Service() {
         registerReceiverIfNeeded()
         startMotionDetectorIfNeeded()
         AppUsageCollectionWorker.schedule(this)
+        ActivityTransitionRegistrar(this).registerIfPermitted()
         return START_STICKY
     }
 
@@ -134,6 +136,7 @@ class MonitoringService : Service() {
 
         fun stop(context: Context) {
             AppUsageCollectionWorker.cancel(context)
+            ActivityTransitionRegistrar(context).unregister()
             context.stopService(Intent(context, MonitoringService::class.java))
         }
     }
