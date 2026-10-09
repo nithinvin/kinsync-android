@@ -43,6 +43,7 @@ class SummaryContentTest {
 
     private var allowClicks = 0
     private var detailsClicks = 0
+    private var timelineClicks = 0
 
     private fun show(
         state: SummaryUiState? = typicalDay,
@@ -58,6 +59,7 @@ class SummaryContentTest {
                 isUsageAccessGranted = isUsageAccessGranted,
                 isActivityRecognitionGranted = isActivityRecognitionGranted,
                 onAllowActivityRecognition = { allowClicks++ },
+                onOpenTimeline = { timelineClicks++ },
                 onOpenDetails = { detailsClicks++ },
                 zoneId = ZoneOffset.UTC,
             )
@@ -120,5 +122,14 @@ class SummaryContentTest {
         composeRule.onNodeWithText(text(R.string.summary_open_details)).performClick()
 
         assertEquals(1, detailsClicks)
+    }
+
+    @Test
+    fun timelineButton_opensMyDay() {
+        show()
+
+        composeRule.onNodeWithText(text(R.string.summary_open_timeline)).performClick()
+
+        assertEquals(1, timelineClicks)
     }
 }

@@ -2,13 +2,17 @@ package com.kinsync.android.ui
 
 import com.kinsync.android.consent.ConsentState
 
-/** Route constants for the onboarding flow, the summary (main) screen and the debug screen. */
+/**
+ * Route constants for the onboarding flow, the summary (main) screen, the "My day" timeline and
+ * the debug screen.
+ */
 object KinSyncDestinations {
     const val CONSENT = "consent"
     const val USAGE_ACCESS = "usage_access"
     const val ACTIVITY_RECOGNITION = "activity_recognition"
     const val BATTERY_OPTIMIZATION = "battery_optimization"
     const val SUMMARY = "summary"
+    const val TIMELINE = "timeline"
     const val DEBUG = "debug"
 
     /**

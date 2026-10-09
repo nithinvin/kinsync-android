@@ -20,6 +20,8 @@ import com.kinsync.android.ui.onboarding.ConsentScreen
 import com.kinsync.android.ui.onboarding.UsageAccessScreen
 import com.kinsync.android.ui.summary.SummaryScreen
 import com.kinsync.android.ui.summary.SummaryViewModel
+import com.kinsync.android.ui.timeline.TimelineScreen
+import com.kinsync.android.ui.timeline.TimelineViewModel
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.launch
@@ -111,8 +113,15 @@ fun KinSyncApp(container: AppContainer) {
                 onAllowActivityRecognition = {
                     navController.navigate(KinSyncDestinations.ACTIVITY_RECOGNITION)
                 },
+                onOpenTimeline = { navController.navigate(KinSyncDestinations.TIMELINE) },
                 onOpenDetails = { navController.navigate(KinSyncDestinations.DEBUG) },
             )
+        }
+        composable(KinSyncDestinations.TIMELINE) {
+            val timelineViewModel: TimelineViewModel = viewModel(
+                factory = TimelineViewModel.Factory(container, context.applicationContext),
+            )
+            TimelineScreen(viewModel = timelineViewModel)
         }
         composable(KinSyncDestinations.DEBUG) {
             val debugViewModel: DebugViewModel = viewModel(

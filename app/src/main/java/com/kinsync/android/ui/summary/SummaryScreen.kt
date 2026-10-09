@@ -9,6 +9,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
@@ -35,6 +36,7 @@ import java.time.format.FormatStyle
 fun SummaryScreen(
     viewModel: SummaryViewModel,
     onAllowActivityRecognition: () -> Unit,
+    onOpenTimeline: () -> Unit,
     onOpenDetails: () -> Unit,
 ) {
     val state by viewModel.state.collectAsState()
@@ -47,6 +49,7 @@ fun SummaryScreen(
         isUsageAccessGranted = viewModel.isUsageAccessGranted,
         isActivityRecognitionGranted = rememberActivityRecognitionGranted(),
         onAllowActivityRecognition = onAllowActivityRecognition,
+        onOpenTimeline = onOpenTimeline,
         onOpenDetails = onOpenDetails,
     )
 }
@@ -60,6 +63,7 @@ fun SummaryContent(
     isUsageAccessGranted: Boolean,
     isActivityRecognitionGranted: Boolean,
     onAllowActivityRecognition: () -> Unit,
+    onOpenTimeline: () -> Unit,
     onOpenDetails: () -> Unit,
     zoneId: ZoneId = ZoneId.systemDefault(),
 ) {
@@ -95,6 +99,9 @@ fun SummaryContent(
             }
         }
         Spacer(Modifier.height(8.dp))
+        Button(onClick = onOpenTimeline, modifier = Modifier.fillMaxWidth()) {
+            Text(stringResource(R.string.summary_open_timeline))
+        }
         OutlinedButton(onClick = onOpenDetails, modifier = Modifier.fillMaxWidth()) {
             Text(stringResource(R.string.summary_open_details))
         }

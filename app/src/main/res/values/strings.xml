@@ -69,6 +69,34 @@
     <string name="summary_updated_note">App use is added up about every 15 minutes, so the last
         few minutes may be missing. Time on the home screen is not counted.</string>
     <string name="summary_open_details">See everything KinSync recorded</string>
+    <string name="summary_open_timeline">My day, hour by hour</string>
+
+    <string name="timeline_title">My day</string>
+    <string name="timeline_loading">Putting your day together…</string>
+    <string name="timeline_today">Today, %1$s</string>
+    <string name="timeline_previous_day">‹ Day before</string>
+    <string name="timeline_next_day">Day after ›</string>
+    <string name="timeline_empty">Nothing was recorded on this day.</string>
+    <string name="timeline_band_description">Your day from midnight to midnight: when the phone
+        was used, when you were still, walking or in a vehicle, and when the phone moved. The list
+        below says the same in words.</string>
+    <string name="timeline_lane_phone">Phone</string>
+    <string name="timeline_lane_activity">Activity</string>
+    <string name="timeline_lane_moved">Moved</string>
+    <string name="timeline_phone_unlocked">Unlocked the phone</string>
+    <string name="timeline_phone_screen_on">Screen turned on</string>
+    <string name="timeline_until">until %1$s (%2$s)</string>
+    <string name="timeline_still_going">still going (%1$s)</string>
+    <string name="timeline_app_time">%1$s %2$s</string>
+    <plurals name="timeline_apps_and_more">
+        <item quantity="one">%1$s and %2$d more app</item>
+        <item quantity="other">%1$s and %2$d more apps</item>
+    </plurals>
+    <string name="timeline_moved">The phone moved</string>
+    <plurals name="timeline_moved_times">
+        <item quantity="one">%1$d time, last at %2$s</item>
+        <item quantity="other">%1$d times, last at %2$s</item>
+    </plurals>
 
     <string name="debug_title">What KinSync has seen</string>
     <string name="debug_empty">No events yet. Unlock your phone to see one appear here.</string>

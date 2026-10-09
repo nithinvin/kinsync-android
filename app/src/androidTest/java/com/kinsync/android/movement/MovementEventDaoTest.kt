@@ -46,4 +46,15 @@ class MovementEventDaoTest {
         assertEquals(300L, dao.observeLatest().first()?.timestampEpochMillis)
         assertEquals(2, dao.count())
     }
+
+    @Test
+    fun observeBetween_returnsOnlyThePeriodOldestFirst() = runTest {
+        dao.insert(MovementEvent(timestampEpochMillis = 250L))
+        dao.insert(MovementEvent(timestampEpochMillis = 99L))
+        dao.insert(MovementEvent(timestampEpochMillis = 100L))
+        // The end of the period is not part of it.
+        dao.insert(MovementEvent(timestampEpochMillis = 300L))
+
+        assertEquals(listOf(100L, 250L), dao.observeBetween(100L, 300L).first().map { it.timestampEpochMillis })
+    }
 }

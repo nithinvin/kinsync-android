@@ -16,14 +16,12 @@ import com.kinsync.android.summary.HomeScreenApps
 import com.kinsync.android.ui.common.AppLabelResolver
 import com.kinsync.android.ui.common.AppUsageRow
 import com.kinsync.android.ui.common.PackageManagerAppLabelResolver
+import com.kinsync.android.ui.common.minuteTicks
 import com.kinsync.android.usage.AppUsageIntervalDao
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.delay
-import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
-import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
@@ -54,21 +52,13 @@ class SummaryViewModel(
     private val dayStartEpochMillis = today.atStartOfDay(zoneId).toInstant().toEpochMilli()
     private val dayEndEpochMillis = today.plusDays(1).atStartOfDay(zoneId).toInstant().toEpochMilli()
 
-    /** The current time once a minute, so an activity in progress keeps growing on screen. */
-    private val minuteTicks: Flow<Long> = flow {
-        while (true) {
-            emit(clock())
-            delay(TICK_MILLIS)
-        }
-    }
-
     /** Null until the first numbers are read from the database. */
     val state: StateFlow<SummaryUiState?> = combine(
         unlockDao.observeBetween(dayStartEpochMillis, dayEndEpochMillis),
         appUsageDao.observeOverlapping(dayStartEpochMillis, dayEndEpochMillis),
         activityTransitionDao.observeLatestBefore(dayStartEpochMillis),
         activityTransitionDao.observeBetween(dayStartEpochMillis, dayEndEpochMillis),
-        minuteTicks,
+        minuteTicks(clock),
     ) { unlockEvents, intervals, stateBefore, transitions, nowEpochMillis ->
         val summary = DailySummary.of(
             dayStartEpochMillis = dayStartEpochMillis,
@@ -100,7 +90,6 @@ class SummaryViewModel(
 
     private companion object {
         const val STOP_TIMEOUT_MILLIS = 5_000L
-        const val TICK_MILLIS = 60_000L
     }
 
     class Factory(

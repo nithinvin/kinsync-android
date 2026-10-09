@@ -36,10 +36,13 @@ com.kinsync.android
 │                              receiver, mapper, Room entity + DAO (FR-2.3)
 ├── summary/                   Daily summary logic in plain Kotlin: unlocks, screen time, top apps,
 │                              time per activity; home-screen app lookup (FR-2.5 precursor)
+├── timeline/                  "My day" logic in plain Kotlin: phone sessions, activity periods,
+│                              movement bursts, one day's ordered timeline (FR-2.5)
 ├── data/                      Room database, migrations + type converters (schemas in app/schemas/)
 ├── permissions/                Usage-access, battery-optimization and activity-recognition helpers
 ├── network/                   HealthApiClient — the Phase-1 stretch-goal `/health` check only
-└── ui/                        Compose screens (onboarding, "Your day so far" summary, debug list),
+└── ui/                        Compose screens (onboarding, "Your day so far" summary, "My day"
+                               timeline, debug list),
                                shared helpers in ui/common, theme, nav
 ```
 
@@ -90,6 +93,24 @@ com.kinsync.android
   transitions from the last one before midnight; a repeated ENTER is ignored and an activity
   still in progress counts until now. The screen refreshes once a minute. The debug list stays
   one tap away ("See everything KinSync recorded") and keeps "Stop monitoring".
+- **"My day" timeline** (Phase-2 M6) opens from the summary ("My day, hour by hour"). The
+  summary stays the main screen, because it answers "how is the day going" faster than a
+  timeline. The timeline shows one day at a time; "Day before" and "Day after" pick the day
+  (never past today). At the top, a 24-hour band has one lane each for phone use, activity and
+  movement, with a "now" line for today. Below it, a list in time order says the same in words.
+  All of it is built by plain-Kotlin functions in `timeline/` with JVM tests:
+  - *Phone sessions* (`PhoneSessions`): the screen turning on starts a session and turning off
+    ends it. A session with an unlock reads "Unlocked the phone"; one without reads "Screen
+    turned on" (for example a notification). The apps used during the session are listed under
+    it (three, then "and N more"), home screen left out. App use is not listed interval by
+    interval: the demo phone records about 350 intervals a day, most under a minute. If a
+    screen-off was missed (service stopped), the session ends at the next screen-on.
+  - *Activity periods* (`ActivityPeriods`): the same replay as the summary's time per
+    activity, which now adds up these periods.
+  - *Movement bursts* (`MovementBursts`): the motion sensor can fire many times during one
+    walk, so movements less than 10 minutes apart are one line ("The phone moved, 4 times").
+  The timeline of today refreshes once a minute; an earlier day is read once (both still
+  follow new rows written to the database).
 - **App usage is collected in the background with WorkManager**, once when monitoring starts
   (including every app open) and then every 15 minutes. `MonitoringService.start` schedules the
   job and `MonitoringService.stop` cancels it; the job itself also checks consent and usage
