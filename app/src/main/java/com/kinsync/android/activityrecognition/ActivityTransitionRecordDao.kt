@@ -16,6 +16,21 @@ interface ActivityTransitionRecordDao {
     @Query("SELECT * FROM activity_transitions ORDER BY timestampEpochMillis DESC, id DESC LIMIT :limit")
     fun observeRecent(limit: Int): Flow<List<ActivityTransitionRecord>>
 
+    /** Transitions inside [fromEpochMillis, toEpochMillis), oldest first. */
+    @Query(
+        "SELECT * FROM activity_transitions " +
+            "WHERE timestampEpochMillis >= :fromEpochMillis AND timestampEpochMillis < :toEpochMillis " +
+            "ORDER BY timestampEpochMillis, id",
+    )
+    fun observeBetween(fromEpochMillis: Long, toEpochMillis: Long): Flow<List<ActivityTransitionRecord>>
+
+    /** The last transition before [epochMillis]: what the elder was doing when a day started. */
+    @Query(
+        "SELECT * FROM activity_transitions WHERE timestampEpochMillis < :epochMillis " +
+            "ORDER BY timestampEpochMillis DESC, id DESC LIMIT 1",
+    )
+    fun observeLatestBefore(epochMillis: Long): Flow<ActivityTransitionRecord?>
+
     @Query("SELECT COUNT(*) FROM activity_transitions")
     suspend fun count(): Int
 }

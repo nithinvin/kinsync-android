@@ -69,4 +69,34 @@ class ActivityTransitionRecordDaoTest {
 
         assertEquals(2, dao.count())
     }
+
+    @Test
+    fun observeBetween_returnsOnlyTheDayOldestFirst() = runTest {
+        dao.insertAll(
+            listOf(
+                record(CoarseActivity.WALKING, TransitionKind.ENTER, 1_500L),
+                record(CoarseActivity.STILL, TransitionKind.ENTER, 900L),
+                record(CoarseActivity.STILL, TransitionKind.EXIT, 1_000L),
+                record(CoarseActivity.STILL, TransitionKind.ENTER, 2_000L),
+            ),
+        )
+
+        val day = dao.observeBetween(1_000L, 2_000L).first()
+
+        assertEquals(listOf(1_000L, 1_500L), day.map { it.timestampEpochMillis })
+    }
+
+    @Test
+    fun observeLatestBefore_isTheStateAtTheStartOfTheDay() = runTest {
+        dao.insertAll(
+            listOf(
+                record(CoarseActivity.WALKING, TransitionKind.EXIT, 800L),
+                record(CoarseActivity.STILL, TransitionKind.ENTER, 800L),
+                record(CoarseActivity.WALKING, TransitionKind.ENTER, 1_200L),
+            ),
+        )
+
+        assertEquals(record(CoarseActivity.STILL, TransitionKind.ENTER, 800L), dao.observeLatestBefore(1_000L).first()?.copy(id = 0))
+        assertEquals(null, dao.observeLatestBefore(800L).first())
+    }
 }

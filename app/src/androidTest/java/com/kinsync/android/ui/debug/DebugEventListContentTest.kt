@@ -12,6 +12,7 @@ import com.kinsync.android.activityrecognition.CoarseActivity
 import com.kinsync.android.activityrecognition.CurrentActivityStatus
 import com.kinsync.android.activityrecognition.TransitionKind
 import com.kinsync.android.movement.LastMovedStatus
+import com.kinsync.android.ui.common.AppUsageRow
 import org.junit.Assert.assertEquals
 import org.junit.Rule
 import org.junit.Test

@@ -18,6 +18,8 @@ import com.kinsync.android.ui.onboarding.ActivityRecognitionScreen
 import com.kinsync.android.ui.onboarding.BatteryOptimizationScreen
 import com.kinsync.android.ui.onboarding.ConsentScreen
 import com.kinsync.android.ui.onboarding.UsageAccessScreen
+import com.kinsync.android.ui.summary.SummaryScreen
+import com.kinsync.android.ui.summary.SummaryViewModel
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.launch
@@ -36,7 +38,7 @@ fun KinSyncApp(container: AppContainer) {
     // Installing an app update stops the monitoring service. Opening the app restarts it when
     // the elder has already consented and finished onboarding (starting it twice is harmless).
     LaunchedEffect(Unit) {
-        if (startDestination == KinSyncDestinations.DEBUG) {
+        if (startDestination == KinSyncDestinations.SUMMARY) {
             MonitoringService.start(context)
         }
     }
@@ -50,12 +52,12 @@ fun KinSyncApp(container: AppContainer) {
                 onAgree = {
                     val next = KinSyncDestinations.afterConsentFor(consentState)
                     coroutineScope.launch { container.consentManager.grantConsent() }
-                    if (next == KinSyncDestinations.DEBUG) {
+                    if (next == KinSyncDestinations.SUMMARY) {
                         // Re-consent: permissions are already granted, so resume collection.
                         MonitoringService.start(context)
                     }
                     navController.navigate(next) {
-                        if (next == KinSyncDestinations.DEBUG) {
+                        if (next == KinSyncDestinations.SUMMARY) {
                             popUpTo(KinSyncDestinations.CONSENT) { inclusive = true }
                         }
                     }
@@ -77,9 +79,10 @@ fun KinSyncApp(container: AppContainer) {
                     val next = KinSyncDestinations.afterActivityRecognitionFor(
                         container.consentManager.currentState(),
                     )
-                    if (next == KinSyncDestinations.DEBUG) {
-                        // Opened from the main screen: register for activity transitions now
-                        // that the permission may be on (starting the service twice is harmless).
+                    if (next == KinSyncDestinations.SUMMARY) {
+                        // Opened from the summary or debug screen: register for activity
+                        // transitions now that the permission may be on (starting the service
+                        // twice is harmless).
                         MonitoringService.start(context)
                         navController.popBackStack()
                     } else {
@@ -93,10 +96,22 @@ fun KinSyncApp(container: AppContainer) {
                 onContinue = {
                     coroutineScope.launch { container.consentManager.completeOnboarding() }
                     MonitoringService.start(context)
-                    navController.navigate(KinSyncDestinations.DEBUG) {
+                    navController.navigate(KinSyncDestinations.SUMMARY) {
                         popUpTo(KinSyncDestinations.CONSENT) { inclusive = true }
                     }
                 },
+            )
+        }
+        composable(KinSyncDestinations.SUMMARY) {
+            val summaryViewModel: SummaryViewModel = viewModel(
+                factory = SummaryViewModel.Factory(container, context.applicationContext),
+            )
+            SummaryScreen(
+                viewModel = summaryViewModel,
+                onAllowActivityRecognition = {
+                    navController.navigate(KinSyncDestinations.ACTIVITY_RECOGNITION)
+                },
+                onOpenDetails = { navController.navigate(KinSyncDestinations.DEBUG) },
             )
         }
         composable(KinSyncDestinations.DEBUG) {

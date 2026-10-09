@@ -50,6 +50,26 @@
     <string name="battery_open_settings">Allow background activity</string>
     <string name="battery_continue">Continue</string>
 
+    <string name="summary_title">Your day so far</string>
+    <string name="summary_loading">Adding up your day…</string>
+    <string name="summary_phone_use_title">Phone use</string>
+    <string name="summary_first_unlock">First unlock</string>
+    <string name="summary_not_yet">not yet today</string>
+    <string name="summary_unlock_count">Unlocks</string>
+    <string name="summary_screen_time">Screen time</string>
+    <string name="summary_top_apps_title">Most used apps</string>
+    <string name="summary_top_apps_empty">No app use recorded yet today.</string>
+    <string name="summary_activity_title">Still, walking or in a vehicle</string>
+    <string name="summary_activity_still">Still</string>
+    <string name="summary_activity_walking">Walking</string>
+    <string name="summary_activity_in_vehicle">In a vehicle</string>
+    <string name="summary_activity_none">none</string>
+    <string name="summary_activity_empty">No activity noticed yet today.</string>
+    <string name="summary_time_earlier_day">%1$s, %2$s</string>
+    <string name="summary_updated_note">App use is added up about every 15 minutes, so the last
+        few minutes may be missing. Time on the home screen is not counted.</string>
+    <string name="summary_open_details">See everything KinSync recorded</string>
+
     <string name="debug_title">What KinSync has seen</string>
     <string name="debug_empty">No events yet. Unlock your phone to see one appear here.</string>
     <string name="debug_backend_checking">Checking backend…</string>

@@ -33,8 +33,8 @@ class KinSyncDestinationsTest {
     }
 
     @Test
-    fun startDestination_fullyOnboarded_isDebug() {
-        assertEquals(KinSyncDestinations.DEBUG, KinSyncDestinations.startDestinationFor(fullyOnboarded))
+    fun startDestination_fullyOnboarded_isSummary() {
+        assertEquals(KinSyncDestinations.SUMMARY, KinSyncDestinations.startDestinationFor(fullyOnboarded))
     }
 
     @Test
@@ -55,7 +55,7 @@ class KinSyncDestinationsTest {
 
     @Test
     fun afterConsent_reconsent_returnsToMainScreen() {
-        assertEquals(KinSyncDestinations.DEBUG, KinSyncDestinations.afterConsentFor(phaseOneInstall))
+        assertEquals(KinSyncDestinations.SUMMARY, KinSyncDestinations.afterConsentFor(phaseOneInstall))
     }
 
     @Test
@@ -74,6 +74,6 @@ class KinSyncDestinationsTest {
 
     @Test
     fun afterActivityRecognition_fromMainScreen_returnsToMainScreen() {
-        assertEquals(KinSyncDestinations.DEBUG, KinSyncDestinations.afterActivityRecognitionFor(fullyOnboarded))
+        assertEquals(KinSyncDestinations.SUMMARY, KinSyncDestinations.afterActivityRecognitionFor(fullyOnboarded))
     }
 }

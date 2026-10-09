@@ -13,19 +13,12 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
-import androidx.lifecycle.Lifecycle
-import androidx.lifecycle.LifecycleEventObserver
-import androidx.lifecycle.compose.LocalLifecycleOwner
 import com.kinsync.android.R
 import com.kinsync.android.activityrecognition.ActivityTransitionRecord
 import com.kinsync.android.activityrecognition.CoarseActivity
@@ -34,7 +27,9 @@ import com.kinsync.android.activityrecognition.TransitionKind
 import com.kinsync.android.collector.UnlockEvent
 import com.kinsync.android.movement.LastMovedStatus
 import com.kinsync.android.network.HealthCheckResult
-import com.kinsync.android.permissions.ActivityRecognitionPermission
+import com.kinsync.android.ui.common.AppUsageRow
+import com.kinsync.android.ui.common.rememberActivityRecognitionGranted
+import com.kinsync.android.ui.common.usageDurationText
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
@@ -52,21 +47,7 @@ fun DebugEventListScreen(
     val recentActivity by viewModel.recentActivityTransitions.collectAsState()
     val health by viewModel.healthStatus.collectAsState()
 
-    // Checked again whenever the screen comes back, e.g. after the permission screen or Settings.
-    val context = LocalContext.current
-    var isActivityRecognitionGranted by remember {
-        mutableStateOf(ActivityRecognitionPermission.isGranted(context))
-    }
-    val lifecycleOwner = LocalLifecycleOwner.current
-    DisposableEffect(lifecycleOwner) {
-        val observer = LifecycleEventObserver { _, event ->
-            if (event == Lifecycle.Event.ON_RESUME) {
-                isActivityRecognitionGranted = ActivityRecognitionPermission.isGranted(context)
-            }
-        }
-        lifecycleOwner.lifecycle.addObserver(observer)
-        onDispose { lifecycleOwner.lifecycle.removeObserver(observer) }
-    }
+    val isActivityRecognitionGranted = rememberActivityRecognitionGranted()
 
     DebugEventListContent(
         health = health,
@@ -168,16 +149,8 @@ private fun SectionMessage(text: String) {
 private fun AppUsageRowItem(row: AppUsageRow) {
     ListItem(
         headlineContent = { Text(row.label) },
-        supportingContent = { Text(usageDurationText(UsageDuration.of(row.totalMillis))) },
+        supportingContent = { Text(usageDurationText(row.totalMillis)) },
     )
-}
-
-@Composable
-private fun usageDurationText(duration: UsageDuration): String = when (duration) {
-    UsageDuration.UnderAMinute -> stringResource(R.string.duration_under_a_minute)
-    is UsageDuration.Minutes -> stringResource(R.string.duration_minutes, duration.minutes)
-    is UsageDuration.HoursAndMinutes ->
-        stringResource(R.string.duration_hours_minutes, duration.hours, duration.minutes)
 }
 
 @Composable

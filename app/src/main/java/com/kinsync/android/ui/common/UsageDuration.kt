@@ -1,6 +1,6 @@
-package com.kinsync.android.ui.debug
+package com.kinsync.android.ui.common
 
-/** A foreground time, rounded down to whole minutes, in the form the debug screen shows it. */
+/** A foreground time, rounded down to whole minutes, in the form the screens show it. */
 sealed interface UsageDuration {
     data object UnderAMinute : UsageDuration
 

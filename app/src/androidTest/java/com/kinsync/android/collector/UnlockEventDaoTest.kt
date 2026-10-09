@@ -70,4 +70,16 @@ class UnlockEventDaoTest {
 
         assertEquals(2, dao.count())
     }
+
+    @Test
+    fun observeBetween_returnsOnlyTheDayOldestFirst() = runTest {
+        dao.insert(UnlockEvent(eventType = UnlockEventType.USER_PRESENT, timestampEpochMillis = 999L))
+        dao.insert(UnlockEvent(eventType = UnlockEventType.USER_PRESENT, timestampEpochMillis = 1_500L))
+        dao.insert(UnlockEvent(eventType = UnlockEventType.SCREEN_ON, timestampEpochMillis = 1_000L))
+        dao.insert(UnlockEvent(eventType = UnlockEventType.USER_PRESENT, timestampEpochMillis = 2_000L))
+
+        val day = dao.observeBetween(1_000L, 2_000L).first()
+
+        assertEquals(listOf(1_000L, 1_500L), day.map { it.timestampEpochMillis })
+    }
 }

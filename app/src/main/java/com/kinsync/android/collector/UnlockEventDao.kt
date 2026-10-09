@@ -13,6 +13,14 @@ interface UnlockEventDao {
     @Query("SELECT * FROM unlock_events ORDER BY timestampEpochMillis DESC LIMIT :limit")
     fun observeRecentEvents(limit: Int = MAX_DEBUG_SCREEN_EVENTS): Flow<List<UnlockEvent>>
 
+    /** Events inside [fromEpochMillis, toEpochMillis), oldest first. */
+    @Query(
+        "SELECT * FROM unlock_events " +
+            "WHERE timestampEpochMillis >= :fromEpochMillis AND timestampEpochMillis < :toEpochMillis " +
+            "ORDER BY timestampEpochMillis",
+    )
+    fun observeBetween(fromEpochMillis: Long, toEpochMillis: Long): Flow<List<UnlockEvent>>
+
     @Query("SELECT COUNT(*) FROM unlock_events")
     suspend fun count(): Int
 

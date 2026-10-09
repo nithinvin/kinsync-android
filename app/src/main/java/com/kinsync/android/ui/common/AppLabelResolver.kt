@@ -1,4 +1,4 @@
-package com.kinsync.android.ui.debug
+package com.kinsync.android.ui.common
 
 import android.content.Context
 import android.content.pm.PackageManager

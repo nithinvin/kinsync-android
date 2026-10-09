@@ -1,4 +1,4 @@
-package com.kinsync.android.ui.debug
+package com.kinsync.android.ui.common
 
 import org.junit.Assert.assertEquals
 import org.junit.Test

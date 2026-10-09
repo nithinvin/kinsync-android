@@ -34,10 +34,13 @@ com.kinsync.android
 ├── movement/                  "Last moved": significant-motion trigger, Room entity + DAO (FR-2.7)
 ├── activityrecognition/       Still / walking / in vehicle: Play services transition request,
 │                              receiver, mapper, Room entity + DAO (FR-2.3)
+├── summary/                   Daily summary logic in plain Kotlin: unlocks, screen time, top apps,
+│                              time per activity; home-screen app lookup (FR-2.5 precursor)
 ├── data/                      Room database, migrations + type converters (schemas in app/schemas/)
 ├── permissions/                Usage-access, battery-optimization and activity-recognition helpers
 ├── network/                   HealthApiClient — the Phase-1 stretch-goal `/health` check only
-└── ui/                        Compose screens (onboarding flow + debug event list), theme, nav
+└── ui/                        Compose screens (onboarding, "Your day so far" summary, debug list),
+                               shared helpers in ui/common, theme, nav
 ```
 
 ## Key design decisions
@@ -77,6 +80,16 @@ com.kinsync.android
   (activity, kind, time), so a repeated delivery is stored once. The `ACTIVITY_RECOGNITION`
   runtime permission (Android 10+) is asked for on its own screen with a plain-language reason;
   the elder can say "Not now", and the debug screen then offers to allow it later.
+- **"Your day so far" is the main screen** (Phase-2 M5). It shows the first unlock and the
+  number of unlocks (`USER_PRESENT` only; the screen also turns on for notifications), screen
+  time, the three most used apps, when the phone last moved, and the time spent still, walking
+  and in a vehicle. All numbers come from plain-Kotlin functions in `summary/` with JVM tests.
+  Screen time merges overlapping app intervals so split screen is counted once. Like Android's
+  own screen time, it leaves out the default home-screen app (`HomeScreenApps`; not every
+  `HOME` app, because Settings has a fallback home screen). Time per activity replays the
+  transitions from the last one before midnight; a repeated ENTER is ignored and an activity
+  still in progress counts until now. The screen refreshes once a minute. The debug list stays
+  one tap away ("See everything KinSync recorded") and keeps "Stop monitoring".
 - **App usage is collected in the background with WorkManager**, once when monitoring starts
   (including every app open) and then every 15 minutes. `MonitoringService.start` schedules the
   job and `MonitoringService.stop` cancels it; the job itself also checks consent and usage
