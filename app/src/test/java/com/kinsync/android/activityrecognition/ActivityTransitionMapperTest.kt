@@ -8,7 +8,7 @@ import org.junit.Test
 
 class ActivityTransitionMapperTest {
 
-    private val nowEpochMillis = 1_760_000_000_000L
+    private val nowEpochMillis = 1_760_000_000_000L // a whole second
     private val nowElapsedRealtimeNanos = 50_000_000_000L // 50 s after boot
 
     private fun map(
@@ -66,6 +66,37 @@ class ActivityTransitionMapperTest {
         val record = map(eventElapsedRealtimeNanos = nowElapsedRealtimeNanos + 5_000_000L)
 
         assertEquals(nowEpochMillis, record?.timestampEpochMillis)
+    }
+
+    @Test
+    fun sameEventDeliveredTwice_withClockDrift_getsTheSameTime() {
+        // Seen on the demo phone: one transition delivered twice, the copies 1 ms apart.
+        val event = nowElapsedRealtimeNanos - 10_000_000_000L
+        val first = ActivityTransitionMapper.toRecord(
+            activityType = DetectedActivity.STILL,
+            transitionType = ActivityTransition.ACTIVITY_TRANSITION_ENTER,
+            eventElapsedRealtimeNanos = event,
+            nowEpochMillis = nowEpochMillis + 948L,
+            nowElapsedRealtimeNanos = nowElapsedRealtimeNanos,
+        )
+        val second = ActivityTransitionMapper.toRecord(
+            activityType = DetectedActivity.STILL,
+            transitionType = ActivityTransition.ACTIVITY_TRANSITION_ENTER,
+            eventElapsedRealtimeNanos = event,
+            nowEpochMillis = nowEpochMillis + 949L,
+            nowElapsedRealtimeNanos = nowElapsedRealtimeNanos,
+        )
+
+        assertEquals(first, second)
+    }
+
+    @Test
+    fun time_isRoundedToTheNearestSecond() {
+        val roundedDown = map(eventElapsedRealtimeNanos = nowElapsedRealtimeNanos - 1_400_000_000L)
+        val roundedUp = map(eventElapsedRealtimeNanos = nowElapsedRealtimeNanos - 1_600_000_000L)
+
+        assertEquals(nowEpochMillis - 1_000L, roundedDown?.timestampEpochMillis)
+        assertEquals(nowEpochMillis - 2_000L, roundedUp?.timestampEpochMillis)
     }
 
     @Test
