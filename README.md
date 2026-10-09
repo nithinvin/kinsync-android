@@ -21,7 +21,7 @@ This repo's own docs cover what's specific to the Android client:
 - [`CONSTITUTION.md`](CONSTITUTION.md) — non-negotiable coding/quality/security standards for
   this repo
 
-## Current status: Phase-2 (version `0.2.0-phase2`, for Review III)
+## Current status: Phase-2 done (version `0.2.0-phase2`, tag `review-3`)
 
 Phase-1 (tag `review-2`) proved the two biggest technical risks: a foreground service capturing
 unlock / screen events into Room, onboarding with plain-language permission screens, a debug
@@ -40,8 +40,11 @@ is still no baseline, deviation detection, pairing or escalation.
   apps, last moved, time per activity (M5).
 - ✅ "My day" timeline: a 24-hour band and a list in time order of phone sessions (with the
   apps used), activity periods and movements, with a day picker (M6).
-- 🟡 Wrap-up: version `0.2.0-phase2`, docs, demo script; tag `review-3` at the demoed commit
+- ✅ Wrap-up: version `0.2.0-phase2`, docs, demo script; tag `review-3` on the demoed commit
   (M7).
+
+The Phase-2 nice-to-haves (charging and call activity, 30-day auto-delete, a battery
+measurement) moved to Phase-3, after Review III (decided 2026-10-09).
 
 Live step tracker: kinsync-docs
 [`plan/phase-2.md` §10](https://github.com/nithinvin/kinsync-docs/blob/main/plan/phase-2.md).
